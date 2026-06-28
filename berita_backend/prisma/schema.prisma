@@ -1,0 +1,40 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  bookmarks News[]
+
+  @@map("users")
+}
+
+model News {
+  id             Int      @id @default(autoincrement())
+  title          String   @db.VarChar(500)
+  link           String   @db.VarChar(1000)
+  contentSnippet String?  @db.Text @map("content_snippet")
+  isoDate        String?  @map("iso_date")
+  imageLarge     String?  @db.VarChar(1000) @map("image_large")
+  imageSmall     String?  @db.VarChar(1000) @map("image_small")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  userId Int?  @map("user_id")
+  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("news")
+}
