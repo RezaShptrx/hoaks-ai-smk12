@@ -10,12 +10,13 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import { SymbolView } from 'expo-symbols';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Link, useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing, MaxContentWidth } from '@/constants/theme';
+import { apiClient } from '@/services/api-client';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 const CAROUSEL_HEIGHT = screenHeight * 0.36;
@@ -34,6 +35,10 @@ export default function WelcomeScreen() {
   const slideAnim = useRef(new Animated.Value(20)).current;
 
   useEffect(() => {
+    if (apiClient.getToken()) {
+      router.replace('/home');
+      return;
+    }
     Animated.parallel([
       Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
       Animated.timing(slideAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
@@ -94,10 +99,10 @@ export default function WelcomeScreen() {
           <Text style={[styles.brandLogoText, { color: theme.text }]}>Valid.</Text>
           <Pressable onPress={() => router.replace('/home')} style={styles.skipButton}>
             <Text style={[styles.skipButtonText, { color: theme.textSecondary }]}>Lewati</Text>
-            <SymbolView
-              tintColor={theme.textSecondary}
-              name={{ ios: 'chevron.right', android: 'chevron-right', web: 'chevron_right' }}
+            <Ionicons
+              name="chevron-forward"
               size={14}
+              color={theme.textSecondary}
             />
           </Pressable>
         </View>
@@ -172,10 +177,10 @@ export default function WelcomeScreen() {
                     style={[styles.primaryButton, pressed && styles.buttonPressed]}>
                     <Text style={styles.primaryButtonText}>Mulai Sekarang</Text>
                     <View style={styles.arrowIconBg}>
-                      <SymbolView
-                        tintColor="#ffffff"
-                        name={{ ios: 'arrow.right', android: 'arrow-right', web: 'arrow_forward' }}
+                      <Ionicons
+                        name="arrow-forward"
                         size={14}
+                        color="#ffffff"
                       />
                     </View>
                   </LinearGradient>

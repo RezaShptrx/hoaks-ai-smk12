@@ -13,9 +13,10 @@ import {
   Animated,
 } from 'react-native';
 import { Image } from 'expo-image';
-import { SymbolView } from 'expo-symbols';
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Link, useRouter } from 'expo-router';
+import { Link, useRouter, useLocalSearchParams } from 'expo-router';
+import { apiClient } from '@/services/api-client';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing, MaxContentWidth } from '@/constants/theme';
@@ -24,6 +25,8 @@ export default function OtpScreen() {
   const theme = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const params = useLocalSearchParams();
+  const email = (params.email as string) || '';
 
   const [otp, setOtp] = useState(['', '', '', '']);
   const [timeLeft, setTimeLeft] = useState(59);
@@ -89,7 +92,7 @@ export default function OtpScreen() {
     Alert.alert('Sukses', 'Kode OTP baru telah dikirim ke email Anda!');
   };
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     const fullCode = otp.join('');
     if (fullCode.length < 4) {
       Alert.alert('Error', 'Harap masukkan 4 digit kode verifikasi.');
@@ -97,13 +100,16 @@ export default function OtpScreen() {
     }
 
     setIsLoading(true);
-    // Simulate verification API request
-    setTimeout(() => {
+    try {
+      await apiClient.verifyOtp(email, fullCode);
       setIsLoading(false);
       Alert.alert('Sukses', 'Verifikasi berhasil!', [
-        { text: 'OK', onPress: () => router.replace('/') }
+        { text: 'OK', onPress: () => router.replace('/profile?onboarding=true') }
       ]);
-    }, 1500);
+    } catch (error: any) {
+      setIsLoading(false);
+      Alert.alert('Verifikasi Gagal', error.message || 'Kode OTP salah atau telah kadaluarsa.');
+    }
   };
 
   return (
@@ -114,10 +120,10 @@ export default function OtpScreen() {
         {/* Minimal header */}
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <SymbolView
-              tintColor={theme.text}
-              name={{ ios: 'arrow.left', android: 'arrow-left', web: 'arrow_back' }}
+            <Ionicons
+              name="arrow-back"
               size={24}
+              color={theme.text}
             />
           </Pressable>
           <Text style={[styles.brandText, { color: theme.text }]}>Valid.</Text>
@@ -181,7 +187,7 @@ export default function OtpScreen() {
                   <Text style={[styles.timerText, { color: theme.textSecondary }]}>
                     Kirim ulang kode dalam{' '}
                     <Text style={[styles.boldTimer, { color: theme.text }]}>
-                      00:${timeLeft < 10 ? `0${timeLeft}` : timeLeft}
+                      00:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}
                     </Text>
                   </Text>
                 ) : (

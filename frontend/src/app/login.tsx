@@ -13,12 +13,13 @@ import {
   Animated,
   Image,
 } from 'react-native';
-import { SymbolView } from 'expo-symbols';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Link, useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing, MaxContentWidth } from '@/constants/theme';
+import { apiClient } from '@/services/api-client';
 
 export default function LoginScreen() {
   const theme = useTheme();
@@ -49,34 +50,37 @@ export default function LoginScreen() {
     ]).start();
   }, []);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Harap isi email dan kata sandi.');
+      Alert.alert('Eror', 'Harap isi email dan kata sandi.');
       return;
     }
     
     setIsLoading(true);
-    // Simulate API request
-    setTimeout(() => {
+    try {
+      await apiClient.login(email, password);
       setIsLoading(false);
-      Alert.alert('Sukses', 'Berhasil masuk (Simulasi)', [
-        { text: 'OK', onPress: () => router.replace('/') }
+      Alert.alert('Sukses', 'Berhasil masuk ke akun Veritas Anda.', [
+        { text: 'OK', onPress: () => router.replace('/home') }
       ]);
-    }, 1500);
+    } catch (error: any) {
+      setIsLoading(false);
+      Alert.alert('Gagal Masuk', error.message || 'Email atau kata sandi salah.');
+    }
   };
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={[styles.container, { backgroundColor: theme.background }]}>
-      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right', 'bottom']}>
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={['top', 'left', 'right', 'bottom']}>
         {/* Minimal header */}
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <SymbolView
-              tintColor={theme.text}
-              name={{ ios: 'arrow.left', android: 'arrow-left', web: 'arrow_back' }}
+            <Ionicons
+              name="arrow-back"
               size={24}
+              color={theme.text}
             />
           </Pressable>
           <Text style={[styles.brandText, { color: theme.text }]}>Valid.</Text>
@@ -85,7 +89,8 @@ export default function LoginScreen() {
 
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          style={{ backgroundColor: theme.background }}
+          contentContainerStyle={[styles.scrollContent, { backgroundColor: theme.background }]}
           keyboardShouldPersistTaps="handled">
           <Animated.View style={[styles.contentContainer, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
             {/* Illustration */}
@@ -118,6 +123,9 @@ export default function LoginScreen() {
                   placeholderTextColor={theme.textSecondary}
                   keyboardType="email-address"
                   autoCapitalize="none"
+                  autoComplete="off"
+                  importantForAutofill="no"
+                  textContentType="none"
                   value={email}
                   onChangeText={setEmail}
                 />
@@ -134,24 +142,32 @@ export default function LoginScreen() {
                 </View>
                 <View style={styles.passwordWrapper}>
                   <TextInput
-                    style={[styles.input, styles.passwordInput, { borderColor: theme.backgroundElement, color: theme.text, backgroundColor: theme.background === '#ffffff' ? '#fcfbff' : '#121214' }]}
+                    style={[
+                      styles.input,
+                      styles.passwordInput,
+                      {
+                        borderColor: theme.backgroundElement,
+                        color: theme.text,
+                        backgroundColor: theme.background === '#ffffff' ? '#fcfbff' : '#121214',
+                        fontFamily: 'Be Vietnam Pro',
+                      }
+                    ]}
                     placeholder="••••••••"
                     placeholderTextColor={theme.textSecondary}
                     secureTextEntry={!showPassword}
+                    autoComplete="off"
+                    importantForAutofill="no"
+                    textContentType="oneTimeCode"
                     value={password}
                     onChangeText={setPassword}
                   />
                   <Pressable
                     onPress={() => setShowPassword(!showPassword)}
                     style={styles.visibilityButton}>
-                    <SymbolView
-                      tintColor={theme.textSecondary}
-                      name={{
-                        ios: showPassword ? 'eye.slash' : 'eye',
-                        android: showPassword ? 'eye-off' : 'eye',
-                        web: showPassword ? 'visibility_off' : 'visibility',
-                      }}
+                    <Ionicons
+                      name={showPassword ? 'eye-off' : 'eye'}
                       size={20}
+                      color={theme.textSecondary}
                     />
                   </Pressable>
                 </View>

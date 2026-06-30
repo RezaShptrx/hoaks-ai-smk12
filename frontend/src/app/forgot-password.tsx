@@ -13,7 +13,7 @@ import {
   Animated,
 } from 'react-native';
 import { Image } from 'expo-image';
-import { SymbolView } from 'expo-symbols';
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link, useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -71,10 +71,10 @@ export default function ForgotPasswordScreen() {
         {/* Minimal header */}
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <SymbolView
-              tintColor={theme.text}
-              name={{ ios: 'arrow.left', android: 'arrow-left', web: 'arrow_back' }}
+            <Ionicons
+              name="arrow-back"
               size={24}
+              color={theme.text}
             />
           </Pressable>
           <Text style={[styles.brandText, { color: theme.text }]}>Valid.</Text>
@@ -134,10 +134,10 @@ export default function ForgotPasswordScreen() {
                     ) : (
                       <View style={styles.buttonContent}>
                         <Text style={styles.submitButtonText}>Kirim Kode Verifikasi</Text>
-                        <SymbolView
-                          tintColor="#ffffff"
-                          name={{ ios: 'paperplane', android: 'send', web: 'send' }}
+                        <Ionicons
+                          name="paper-plane"
                           size={16}
+                          color="#ffffff"
                         />
                       </View>
                     )}

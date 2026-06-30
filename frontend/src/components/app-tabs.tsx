@@ -1,90 +1,168 @@
-import { Tabs } from 'expo-router';
-import { useColorScheme } from 'react-native';
-import { SymbolView } from 'expo-symbols';
+import { Tabs, usePathname } from 'expo-router';
+import { useColorScheme, BackHandler } from 'react-native';
+import { useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/theme';
+
+// Screens that are "root" tab screens — pressing back here should exit the app
+const ROOT_TAB_PATHS = ['/home', '/research', '/verify', '/explore', '/profile'];
 
 export default function AppTabs() {
   const scheme = useColorScheme();
-  const colors = Colors[scheme === 'unspecified' ? 'light' : scheme];
+  const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
+  const pathname = usePathname();
+
+  // Handle Android hardware back button
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (ROOT_TAB_PATHS.includes(pathname)) {
+        // On a root tab: exit the app instead of crashing with GO_BACK unhandled
+        BackHandler.exitApp();
+        return true; // consumed — prevents error
+      }
+      return false; // not consumed — let expo-router handle (router.back())
+    });
+    return () => subscription.remove();
+  }, [pathname]);
+
+
+  const hiddenTabOptions = {
+    href: null,
+    tabBarStyle: {
+      display: 'none' as const,
+      position: 'absolute' as const,
+      bottom: -100,
+      height: 0,
+      borderTopWidth: 0,
+      elevation: 0,
+    },
+  };
 
   return (
     <Tabs
+      backBehavior="none"
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
           backgroundColor: colors.background,
           borderTopColor: colors.backgroundElement,
         },
-        tabBarActiveTintColor: colors.text,
+        tabBarActiveTintColor: '#4f378a',
         tabBarInactiveTintColor: colors.textSecondary,
       }}>
       {/* 1. Welcome Page (index) - MUST be first to act as the default initial screen */}
       <Tabs.Screen
         name="index"
-        options={{
-          href: null,
-          tabBarStyle: { display: 'none' }, // Hides tab bar completely when viewing the Welcome screen
-        }}
+        options={hiddenTabOptions}
       />
 
-      {/* 2. Home (Fact Checker) Tab */}
+      {/* 2. Home (Dashboard / News Feed) Tab */}
       <Tabs.Screen
         name="home"
         options={{
           title: 'Home',
           tabBarIcon: ({ color, size }) => (
-            <SymbolView
-              name={{ ios: 'house.fill', android: 'home', web: 'home' }}
+            <Ionicons
+              name="home"
               size={size}
-              tintColor={color}
+              color={color}
             />
           ),
         }}
       />
       
-      {/* 3. Explore Tab */}
+      {/* 3. Research Tab */}
+      <Tabs.Screen
+        name="research"
+        options={{
+          title: 'Research',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons
+              name="search"
+              size={size}
+              color={color}
+            />
+          ),
+        }}
+      />
+      
+      {/* 4. Verify (Fact Checker) Tab */}
+      <Tabs.Screen
+        name="verify"
+        options={{
+          title: 'Verify',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons
+              name="shield-checkmark"
+              size={size}
+              color={color}
+            />
+          ),
+        }}
+      />
+      
+      {/* 5. Explore (AI Assistant) Tab */}
       <Tabs.Screen
         name="explore"
         options={{
           title: 'Explore',
           tabBarIcon: ({ color, size }) => (
-            <SymbolView
-              name={{ ios: 'magnifyingglass', android: 'magnify', web: 'search' }}
+            <Ionicons
+              name="compass"
               size={size}
-              tintColor={color}
+              color={color}
             />
           ),
         }}
       />
 
-      {/* Hide Auth Screens from Tab bar */}
+      {/* 6. Profile Tab */}
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons
+              name="person"
+              size={size}
+              color={color}
+            />
+          ),
+        }}
+      />
+
+      {/* Hide Auth & News Detail Screens from Tab bar */}
       <Tabs.Screen
         name="login"
-        options={{
-          href: null,
-          tabBarStyle: { display: 'none' },
-        }}
+        options={hiddenTabOptions}
       />
       <Tabs.Screen
         name="register"
-        options={{
-          href: null,
-          tabBarStyle: { display: 'none' },
-        }}
+        options={hiddenTabOptions}
       />
       <Tabs.Screen
         name="otp"
-        options={{
-          href: null,
-          tabBarStyle: { display: 'none' },
-        }}
+        options={hiddenTabOptions}
       />
       <Tabs.Screen
         name="forgot-password"
-        options={{
-          href: null,
-          tabBarStyle: { display: 'none' },
-        }}
+        options={hiddenTabOptions}
+      />
+      <Tabs.Screen
+        name="news-detail"
+        options={hiddenTabOptions}
+      />
+      <Tabs.Screen
+        name="favorite"
+        options={hiddenTabOptions}
+      />
+      <Tabs.Screen
+        name="report-hoax"
+        options={hiddenTabOptions}
+      />
+      <Tabs.Screen
+        name="guide-detail"
+        options={hiddenTabOptions}
       />
     </Tabs>
   );

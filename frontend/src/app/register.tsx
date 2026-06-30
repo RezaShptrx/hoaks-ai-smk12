@@ -13,12 +13,13 @@ import {
   Animated,
   Image,
 } from 'react-native';
-import { SymbolView } from 'expo-symbols';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link, useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing, MaxContentWidth } from '@/constants/theme';
+import { apiClient } from '@/services/api-client';
 
 export default function RegisterScreen() {
   const theme = useTheme();
@@ -28,7 +29,9 @@ export default function RegisterScreen() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   // Entrance animations
@@ -50,38 +53,45 @@ export default function RegisterScreen() {
     ]).start();
   }, []);
 
-  const handleRegister = () => {
-    if (!fullName || !email || !password) {
-      Alert.alert('Error', 'Harap isi semua kolom.');
+  const handleRegister = async () => {
+    if (!fullName || !email || !password || !confirmPassword) {
+      Alert.alert('Eror', 'Harap isi semua kolom.');
       return;
     }
     if (password.length < 8) {
-      Alert.alert('Error', 'Kata sandi minimal harus 8 karakter.');
+      Alert.alert('Eror', 'Kata sandi minimal harus 8 karakter.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      Alert.alert('Eror', 'Kata sandi dan konfirmasi kata sandi tidak cocok.');
       return;
     }
     
     setIsLoading(true);
-    // Simulate API request
-    setTimeout(() => {
+    try {
+      await apiClient.signup(fullName, email, password);
       setIsLoading(false);
-      Alert.alert('Sukses', 'Akun berhasil dibuat! Silakan verifikasi kode OTP.', [
-        { text: 'OK', onPress: () => router.replace('/otp') }
+      Alert.alert('Sukses', 'Akun berhasil dibuat! Silakan verifikasi kode OTP Anda.', [
+        { text: 'OK', onPress: () => router.replace({ pathname: '/otp', params: { email } }) }
       ]);
-    }, 1500);
+    } catch (error: any) {
+      setIsLoading(false);
+      Alert.alert('Pendaftaran Gagal', error.message || 'Email sudah terdaftar.');
+    }
   };
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={[styles.container, { backgroundColor: theme.background }]}>
-      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right', 'bottom']}>
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={['top', 'left', 'right', 'bottom']}>
         {/* Minimal header */}
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <SymbolView
-              tintColor={theme.text}
-              name={{ ios: 'arrow.left', android: 'arrow-left', web: 'arrow_back' }}
+            <Ionicons
+              name="arrow-back"
               size={24}
+              color={theme.text}
             />
           </Pressable>
           <Text style={[styles.brandText, { color: theme.text }]}>Valid.</Text>
@@ -90,7 +100,8 @@ export default function RegisterScreen() {
 
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          style={{ backgroundColor: theme.background }}
+          contentContainerStyle={[styles.scrollContent, { backgroundColor: theme.background }]}
           keyboardShouldPersistTaps="handled">
           <Animated.View style={[styles.contentContainer, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
             {/* Illustration */}
@@ -121,6 +132,9 @@ export default function RegisterScreen() {
                   style={[styles.input, { borderColor: theme.backgroundElement, color: theme.text, backgroundColor: theme.background === '#ffffff' ? '#fcfbff' : '#121214' }]}
                   placeholder="Budi Santoso"
                   placeholderTextColor={theme.textSecondary}
+                  autoComplete="off"
+                  importantForAutofill="no"
+                  textContentType="none"
                   value={fullName}
                   onChangeText={setFullName}
                 />
@@ -134,6 +148,9 @@ export default function RegisterScreen() {
                   placeholderTextColor={theme.textSecondary}
                   keyboardType="email-address"
                   autoCapitalize="none"
+                  autoComplete="off"
+                  importantForAutofill="no"
+                  textContentType="none"
                   value={email}
                   onChangeText={setEmail}
                 />
@@ -143,24 +160,67 @@ export default function RegisterScreen() {
                 <Text style={[styles.label, { color: theme.textSecondary }]}>Kata Sandi Baru</Text>
                 <View style={styles.passwordWrapper}>
                   <TextInput
-                    style={[styles.input, styles.passwordInput, { borderColor: theme.backgroundElement, color: theme.text, backgroundColor: theme.background === '#ffffff' ? '#fcfbff' : '#121214' }]}
+                    style={[
+                      styles.input,
+                      styles.passwordInput,
+                      {
+                        borderColor: theme.backgroundElement,
+                        color: theme.text,
+                        backgroundColor: theme.background === '#ffffff' ? '#fcfbff' : '#121214',
+                        fontFamily: 'Be Vietnam Pro',
+                      }
+                    ]}
                     placeholder="Min. 8 karakter"
                     placeholderTextColor={theme.textSecondary}
                     secureTextEntry={!showPassword}
+                    autoComplete="off"
+                    importantForAutofill="no"
+                    textContentType="oneTimeCode"
                     value={password}
                     onChangeText={setPassword}
                   />
                   <Pressable
                     onPress={() => setShowPassword(!showPassword)}
                     style={styles.visibilityButton}>
-                    <SymbolView
-                      tintColor={theme.textSecondary}
-                      name={{
-                        ios: showPassword ? 'eye.slash' : 'eye',
-                        android: showPassword ? 'eye-off' : 'eye',
-                        web: showPassword ? 'visibility_off' : 'visibility',
-                      }}
+                    <Ionicons
+                      name={showPassword ? 'eye-off' : 'eye'}
                       size={20}
+                      color={theme.textSecondary}
+                    />
+                  </Pressable>
+                </View>
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={[styles.label, { color: theme.textSecondary }]}>Konfirmasi Kata Sandi</Text>
+                <View style={styles.passwordWrapper}>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      styles.passwordInput,
+                      {
+                        borderColor: theme.backgroundElement,
+                        color: theme.text,
+                        backgroundColor: theme.background === '#ffffff' ? '#fcfbff' : '#121214',
+                        fontFamily: 'Be Vietnam Pro',
+                      }
+                    ]}
+                    placeholder="Masukkan ulang kata sandi"
+                    placeholderTextColor={theme.textSecondary}
+                    secureTextEntry={!showConfirmPassword}
+                    autoComplete="off"
+                    importantForAutofill="no"
+                    textContentType="oneTimeCode"
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                  />
+                  <Pressable
+                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                    style={styles.visibilityButton}>
+                    <Ionicons
+                      name={showConfirmPassword ? 'eye-off' : 'eye'}
+                      size={20}
+                      color={theme.textSecondary}
                     />
                   </Pressable>
                 </View>
