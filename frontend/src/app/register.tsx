@@ -100,7 +100,7 @@ export default function RegisterScreen() {
               color={theme.text}
             />
           </Pressable>
-          <Text style={[styles.brandText, { color: theme.text }]}>Valid.</Text>
+          <Text style={[styles.brandText, { color: theme.text }]}>Veros</Text>
           <View style={styles.headerPlaceholder} />
         </View>
 
@@ -150,7 +150,7 @@ export default function RegisterScreen() {
                 <Text style={[styles.label, { color: theme.textSecondary }]}>Email</Text>
                 <TextInput
                   style={[styles.input, { borderColor: theme.backgroundElement, color: theme.text, backgroundColor: theme.background === '#ffffff' ? '#fcfbff' : '#121214' }]}
-                  placeholder="contoh@valid.com"
+                  placeholder="contoh@veros.com"
                   placeholderTextColor={theme.textSecondary}
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -236,7 +236,7 @@ export default function RegisterScreen() {
               <Pressable onPress={handleRegister} disabled={isLoading} style={styles.submitButtonContainer}>
                 {({ pressed }) => (
                   <LinearGradient
-                    colors={['#4f378a', '#6750a4']}
+                    colors={['#00ca92', '#00a87a']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={[styles.submitButton, pressed && styles.buttonPressed, isLoading && styles.buttonDisabled]}>
@@ -281,7 +281,7 @@ export default function RegisterScreen() {
               <Text style={[styles.footerText, { color: theme.textSecondary }]}>Sudah punya akun? </Text>
               <Link href="/login" asChild>
                 <Pressable>
-                  <Text style={[styles.loginText, { color: theme.text }]}>Login</Text>
+                  <Text style={[styles.loginText, { color: theme.text }]}>Masuk</Text>
                 </Pressable>
               </Link>
             </View>
@@ -411,7 +411,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#4f378a',
+    shadowColor: '#00ca92',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,

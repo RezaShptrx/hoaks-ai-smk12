@@ -133,7 +133,7 @@ export default function FavoriteScreen() {
           }} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={24} color={theme.text} />
           </Pressable>
-          <Text style={[styles.brandText, { color: '#4f378a' }]}>Favorit</Text>
+          <Text style={[styles.brandText, { color: '#00ca92' }]}>Favorit</Text>
         </View>
 
         <ScrollView

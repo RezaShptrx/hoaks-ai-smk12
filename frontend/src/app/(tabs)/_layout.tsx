@@ -33,7 +33,7 @@ export default function TabLayout() {
           backgroundColor: colors.background,
           borderTopColor: colors.backgroundElement,
         },
-        tabBarActiveTintColor: '#4f378a',
+        tabBarActiveTintColor: '#00ca92',
         tabBarInactiveTintColor: colors.textSecondary,
       }}>
       
@@ -41,7 +41,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: 'Home',
+          title: 'Beranda',
           tabBarIcon: ({ color, size }) => (
             <Ionicons
               name="home"
@@ -56,7 +56,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="research"
         options={{
-          title: 'Research',
+          title: 'Riset',
           tabBarIcon: ({ color, size }) => (
             <Ionicons
               name="search"
@@ -71,7 +71,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="verify"
         options={{
-          title: 'Verify',
+          title: 'Verifikasi',
           tabBarIcon: ({ color, size }) => (
             <Ionicons
               name="shield-checkmark"
@@ -86,7 +86,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Explore',
+          title: 'Jelajahi',
           tabBarIcon: ({ color, size }) => (
             <Ionicons
               name="compass"
@@ -101,7 +101,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: 'Profil',
           tabBarIcon: ({ color, size }) => (
             <Ionicons
               name="person"

@@ -60,7 +60,7 @@ export default function LoginScreen() {
     try {
       await apiClient.login(email, password);
       setIsLoading(false);
-      Alert.alert('Sukses', 'Berhasil masuk ke akun Veritas Anda.', [
+      Alert.alert('Sukses', 'Berhasil masuk ke akun Veros Anda.', [
         { text: 'OK', onPress: () => router.replace('/home') }
       ]);
     } catch (error: any) {
@@ -89,7 +89,7 @@ export default function LoginScreen() {
               color={theme.text}
             />
           </Pressable>
-          <Text style={[styles.brandText, { color: theme.text }]}>Valid.</Text>
+          <Text style={[styles.brandText, { color: theme.text }]}>Veros</Text>
           <View style={styles.headerPlaceholder} />
         </View>
 
@@ -183,7 +183,7 @@ export default function LoginScreen() {
               <Pressable onPress={handleLogin} disabled={isLoading} style={styles.submitButtonContainer}>
                 {({ pressed }) => (
                   <LinearGradient
-                    colors={['#4f378a', '#6750a4']}
+                    colors={['#00ca92', '#00a87a']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={[styles.submitButton, pressed && styles.buttonPressed, isLoading && styles.buttonDisabled]}>
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#4f378a',
+    shadowColor: '#00ca92',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,

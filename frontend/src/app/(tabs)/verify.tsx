@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -318,12 +318,12 @@ export default function VerifyScreen() {
           confidence,
           color,
           image: item?.image || item?.imageUrl || selectedImageUri || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDk1n2cwxgb2eeXSapYKaUCLycVW2EnVFpuhmQD2q9gJmO33XlWxYqbAyUKmN2Uzht3zUXLzZujRbmgPS91EBuXl464WRyZZCNCbr2gcq6AE-uVBrS3C8yeCOR3MFGrwuumWJJB7sg-UxIE3SD5Ey_L36PAzVeyo-1NHnEa69JBxZNfTkEwu9B5QrnEToZ0w_utUqmYfg8I6rJvQS-FSpEdJGKtsOOnFJpbSEco-n-xx7r137m3Kw7s999AOiMJNffoXUZgLn6JW_w',
-          snippet: factCheck?.summary || item?.snippet || item?.deskripsi || 'Tim Veritas AI mendeteksi kecocokan tingkat tinggi dengan referensi laporan verifikasi independen terkait klaim ini.',
+          snippet: factCheck?.summary || item?.snippet || item?.deskripsi || 'Tim Veros AI mendeteksi kecocokan tingkat tinggi dengan referensi laporan verifikasi independen terkait klaim ini.',
           date: item?.date || item?.tanggal || new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
-          source: item?.source || item?.sumber || 'Analisis AI Veritas & Mafindo',
+          source: item?.source || item?.sumber || 'Analisis AI Veros & Mafindo',
           reason: reasoning,
           action: item?.action || item?.langkah || (verdict === 'HOAKS'
-            ? 'Segera hapus pesan, laporkan nomor pengirim ke Veritas, dan jangan disebarkan kembali!'
+            ? 'Segera hapus pesan, laporkan nomor pengirim ke Veros, dan jangan disebarkan kembali!'
             : verdict === 'RAGU-RAGU'
             ? 'Pastikan untuk mencari sumber pembanding resmi sebelum mempercayai sepenuhnya.'
             : 'Informasi ini aman untuk disebarkan kembali sebagai wawasan yang berdasar fakta.'),
@@ -344,10 +344,10 @@ export default function VerifyScreen() {
         let confidence = '88%';
         let color = '#15803d'; // Green
         let image = selectedImageUri || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDk1n2cwxgb2eeXSapYKaUCLycVW2EnVFpuhmQD2q9gJmO33XlWxYqbAyUKmN2Uzht3zUXLzZujRbmgPS91EBuXl464WRyZZCNCbr2gcq6AE-uVBrS3C8yeCOR3MFGrwuumWJJB7sg-UxIE3SD5Ey_L36PAzVeyo-1NHnEa69JBxZNfTkEwu9B5QrnEToZ0w_utUqmYfg8I6rJvQS-FSpEdJGKtsOOnFJpbSEco-n-xx7r137m3Kw7s999AOiMJNffoXUZgLn6JW_w';
-        let snippet = selectedImageUri ? 'Tangkapan layar/gambar yang diunggah terverifikasi secara lokal oleh mesin Veritas.' : 'Pemeriksaan silang lokal mendeteksi status valid atas klaim/pernyataan Anda saat ini.';
+        let snippet = selectedImageUri ? 'Tangkapan layar/gambar yang diunggah terverifikasi secara lokal oleh mesin Veros.' : 'Pemeriksaan silang lokal mendeteksi status valid atas klaim/pernyataan Anda saat ini.';
         let date = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-        let source = 'Sistem Cek Lokal Veritas';
-        let reason = 'Pernyataan ini terbukti akurat berdasarkan basis data fakta lokal offline Veritas.';
+        let source = 'Sistem Cek Lokal Veros';
+        let reason = 'Pernyataan ini terbukti akurat berdasarkan basis data fakta lokal offline Veros.';
         let action = 'Informasi ini aman untuk disebarkan kembali sebagai wawasan yang berdasar fakta.';
         let links = ['TurnBackHoax', 'Portal Kominfo'];
 
@@ -359,7 +359,7 @@ export default function VerifyScreen() {
           image = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAzy_KoWzpkENrYHKFw5rGi8uU_Z4lvRoKMx4zpvh0jLVlZU13iqbWgHqT4DBOza1oj8tXM2sAvtl25i7en3OMJOKsm16DSgYRXJDsxUrUBoVOj0M4zuRH3VLihM0ooCT-ZHrhx7iBGd64KEG4K1e0hjx2XBkm-iHoKGNU8DKjYaqWGMv99M7ms_eyTqQWKCU8XIao8AKKBYUdbVr1zK6V2OZ4PyOPMQSlDbKVSJqblAfkOA-RV_0cpxrfs3J3xIj4fbvxIY-7wGJI';
           snippet = 'BUMN membagikan subsidi token listrik sebesar Rp1.000.000 kepada nasabah melalui tautan Telegram khusus di bawah ini.';
           reason = 'Tautan Telegram dan domain web yang dilampirkan terbukti sebagai situs penipuan phishing data nasabah.';
-          action = 'Segera hapus pesan, laporkan nomor pengirim ke Veritas, dan jangan sekali-kali memasukkan data pribadi atau kode OTP Anda ke web tersebut!';
+          action = 'Segera hapus pesan, laporkan nomor pengirim ke Veros, dan jangan sekali-kali memasukkan data pribadi atau kode OTP Anda ke web tersebut!';
         } else if (query.includes('vaksin') || query.includes('obat') || query.includes('sembuh') || query.includes('kayu putih')) {
           verdict = 'RAGU-RAGU';
           title = 'Khasiat Minyak Kayu Putih Sembuhkan Sel Virus';
@@ -433,7 +433,7 @@ export default function VerifyScreen() {
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={[styles.brandText, { color: '#4f378a' }]}>Verify</Text>
+          <Text style={[styles.brandText, { color: '#00ca92' }]}>Verifikasi</Text>
         </View>
 
         <ScrollView
@@ -465,7 +465,7 @@ export default function VerifyScreen() {
                   {/* Nucleus */}
                   <View style={styles.nucleus}>
                     <LinearGradient
-                      colors={isVerifying ? ['#d946ef', '#6366f1'] : ['#4f378a', '#9b51e0']}
+                      colors={isVerifying ? ['#d946ef', '#6366f1'] : ['#00ca92', '#00ca92']}
                       style={styles.nucleusGradient}
                     />
                   </View>
@@ -504,7 +504,7 @@ export default function VerifyScreen() {
                 <View style={[
                   styles.inputModule,
                   {
-                    borderColor: isFocused ? '#4f378a' : theme.backgroundElement,
+                    borderColor: isFocused ? '#00ca92' : theme.backgroundElement,
                     borderWidth: isFocused ? 2 : 1,
                     backgroundColor: theme.background === '#ffffff' ? '#fdf7ff' : '#1e1e21',
                   }
@@ -539,7 +539,7 @@ export default function VerifyScreen() {
                       style={({ pressed }) => [styles.helperBtn, pressed && styles.btnPressed]}
                       onPress={handlePickImage}
                     >
-                      <Ionicons name="image-outline" size={14} color="#4f378a" />
+                      <Ionicons name="image-outline" size={14} color="#00ca92" />
                       <Text style={styles.helperBtnText}>
                         {selectedImageUri ? 'Gambar Terpilih' : 'Unggah Foto'}
                       </Text>
@@ -548,14 +548,14 @@ export default function VerifyScreen() {
                       style={({ pressed }) => [styles.helperBtn, pressed && styles.btnPressed]}
                       onPress={() => setClaimQuery('https://www.hadiahgratis-kominfo.com/menang-subsidi-bansos-2026')}
                     >
-                      <Ionicons name="link-outline" size={14} color="#4f378a" />
+                      <Ionicons name="link-outline" size={14} color="#00ca92" />
                       <Text style={styles.helperBtnText}>Tempel Link</Text>
                     </Pressable>
                     <Pressable
                       style={({ pressed }) => [styles.helperBtn, pressed && styles.btnPressed]}
                       onPress={() => setClaimQuery('Klaim minyak kayu putih bisa menyembuhkan infeksi virus pernapasan.')}
                     >
-                      <Ionicons name="medical-outline" size={14} color="#4f378a" />
+                      <Ionicons name="medical-outline" size={14} color="#00ca92" />
                       <Text style={styles.helperBtnText}>Klaim Medis</Text>
                     </Pressable>
                   </View>
@@ -569,7 +569,7 @@ export default function VerifyScreen() {
                 >
                   {({ pressed }) => (
                     <LinearGradient
-                      colors={claimQuery.trim() || selectedImageUri ? ['#4f378a', '#9b51e0'] : ['#cccccc', '#dddddd']}
+                      colors={claimQuery.trim() || selectedImageUri ? ['#00ca92', '#00ca92'] : ['#cccccc', '#dddddd']}
                       style={[
                         styles.verifyBtn,
                         pressed && styles.btnPressed,
@@ -587,7 +587,7 @@ export default function VerifyScreen() {
             {/* Verification Processing State */}
             {isVerifying && (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#4f378a" />
+                <ActivityIndicator size="large" color="#00ca92" />
                 <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
                   Menganalisis tautan & basis data fakta...
                 </Text>
@@ -654,8 +654,8 @@ export default function VerifyScreen() {
                   {resultData.aiReply ? (
                     <View style={[styles.cardSection, { backgroundColor: theme.background === '#ffffff' ? '#f8f4ff' : '#221e2e', padding: 12, borderRadius: 10, marginBottom: 12 }]}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                        <Ionicons name="sparkles" size={13} color="#4f378a" />
-                        <Text style={[styles.sectionHeading, { color: '#4f378a', marginBottom: 0 }]}>Respons Cek Hoaks AI:</Text>
+                        <Ionicons name="sparkles" size={13} color="#00ca92" />
+                        <Text style={[styles.sectionHeading, { color: '#00ca92', marginBottom: 0 }]}>Respons Cek Hoaks AI:</Text>
                       </View>
                       <Text style={[styles.sectionBody, { color: theme.text }]}>{resultData.aiReply}</Text>
                     </View>
@@ -688,7 +688,7 @@ export default function VerifyScreen() {
                   <Pressable onPress={handleReset} style={styles.resetBtnWrapper}>
                     {({ pressed }) => (
                       <LinearGradient
-                        colors={['#4f378a', '#6750a4']}
+                        colors={['#00ca92', '#00a87a']}
                         style={[styles.resetBtn, pressed && styles.btnPressed]}
                       >
                         <Text style={styles.resetBtnText}>Periksa Klaim Lainnya</Text>
@@ -755,7 +755,7 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     borderWidth: 2,
-    borderColor: '#9b51e0',
+    borderColor: '#00ca92',
     backgroundColor: 'rgba(155, 81, 224, 0.15)',
   },
   atomContainer: {
@@ -773,7 +773,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
-    shadowColor: '#9b51e0',
+    shadowColor: '#00ca92',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 10,
@@ -837,7 +837,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: 'Be Vietnam Pro',
     fontWeight: '600',
-    color: '#4f378a',
+    color: '#00ca92',
   },
   verifyBtnWrapper: {
     width: '100%',
@@ -1052,7 +1052,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     fontFamily: 'Be Vietnam Pro',
-    color: '#4f378a',
+    color: '#00ca92',
   },
   attachedImageRow: {
     flexDirection: 'row',

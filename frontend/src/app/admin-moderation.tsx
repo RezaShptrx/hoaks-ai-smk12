@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -91,7 +91,7 @@ export default function AdminModerationScreen() {
           </Pressable>
           <View style={styles.headerTitleContainer}>
             <Text style={[styles.headerTitle, { color: theme.text }]}>Moderasi Aduan Hoaks</Text>
-            <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>Panel Khusus Admin Veritas</Text>
+            <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>Panel Khusus Admin Veros</Text>
           </View>
           <Pressable
             onPress={handleRefresh}
@@ -142,18 +142,18 @@ export default function AdminModerationScreen() {
         {/* Reports Content list */}
         {isLoading && !isRefreshing ? (
           <View style={styles.centerContainer}>
-            <ActivityIndicator size="large" color="#4f378a" />
+            <ActivityIndicator size="large" color="#00ca92" />
             <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Memuat laporan aduan...</Text>
           </View>
         ) : hoaxReports.length === 0 ? (
           <ScrollView
             contentContainerStyle={styles.centerContainer}
             refreshControl={
-              <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} tintColor="#4f378a" />
+              <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} tintColor="#00ca92" />
             }
           >
             <View style={styles.emptyCard}>
-              <Ionicons name="shield-checkmark-outline" size={60} color="#4f378a" style={{ opacity: 0.25, marginBottom: 16 }} />
+              <Ionicons name="shield-checkmark-outline" size={60} color="#00ca92" style={{ opacity: 0.25, marginBottom: 16 }} />
               <Text style={[styles.emptyTitle, { color: theme.text }]}>Antrean Bersih!</Text>
               <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
                 Tidak ada laporan hoaks dengan status ini yang memerlukan tinjauan saat ini.
@@ -165,7 +165,7 @@ export default function AdminModerationScreen() {
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
             refreshControl={
-              <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} tintColor="#4f378a" />
+              <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} tintColor="#00ca92" />
             }
           >
             {hoaxReports.map((report) => (
@@ -182,7 +182,7 @@ export default function AdminModerationScreen() {
                 {/* Card Top Row */}
                 <View style={styles.cardHeader}>
                   <View style={styles.categoryBadge}>
-                    <Ionicons name="folder-open-outline" size={12} color="#4f378a" style={{ marginRight: 4 }} />
+                    <Ionicons name="folder-open-outline" size={12} color="#00ca92" style={{ marginRight: 4 }} />
                     <Text style={styles.categoryText}>{report.category}</Text>
                   </View>
                   <View style={[styles.statusBadge, { borderColor: report.status === 'APPROVED' ? '#15803d' : report.status === 'REJECTED' ? '#ba1a1a' : '#d97706' }]}>
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   categoryText: {
-    color: '#4f378a',
+    color: '#00ca92',
     fontSize: 11,
     fontWeight: '700',
     fontFamily: 'Be Vietnam Pro',

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -225,7 +225,7 @@ export default function ResearchScreen() {
       time: '2 jam yang lalu',
       image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAmzqeEvQRQrowcxxJ1hEqTiHf29qZZgOBe0cWOQzTt8nL5bl_i_lKaMjcTDFVDnATbq-hOrMiyo9p1VocTzqC4b_tzR62YBFVYCfmGeDOs0PWKCtNbeFtnnQNNpb677kkQTQyT2V545cKbAXHGIv7V3w7FLtiG1Pc3ky2jmDmSgMzjP5pssM8phh4CeBRJzBqw6Ph11Iw7fX1d2x4w_Ta2QWgK55ZqUYIWCWefr9GVEgWX0FSydPiIx_6zKQXazQL-shoEeHNlpeg',
       status: 'VALID',
-      color: '#4f378a',
+      color: '#00ca92',
       content: 'A global summit of tech leaders and policy makers has agreed on a draft framework for info verification standards.',
     },
     {
@@ -236,7 +236,7 @@ export default function ResearchScreen() {
       time: '4 jam yang lalu',
       image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB3x1LXv2eiBOwPOf1zp8xdWhoitCBaaYm4BJ7SeMhLKKMhoxakaAeOxAzGKkJ-vqTFiQAFoLDyO0b-uVBEGw42ppyUAufRFlt0QZMbqIaiejKKKNP69_NcnZgJhAUav7a2E97tZT7f23Chr9HpYuNgUXe9ujX9_IuWLcb5UedWAymUnIIWBRf6uOZnjhRunk4EUj7tDtotMaD3qXwjmGyeDUzFpAHeKPxceUtkoWqpSD3UbMsq6lREmBZ2P7Ws33MtFk4oK7f3d1Y',
       status: 'RAGU-RAGU',
-      color: '#4f378a',
+      color: '#00ca92',
       content: 'As artificial intelligence tools become widespread, researchers are building advanced classifiers to detect synthetic media, though complete accuracy is still in question.',
     },
     {
@@ -258,7 +258,7 @@ export default function ResearchScreen() {
       time: '12 jam yang lalu',
       image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBh0TmFuXhASC7VJ17P4dRWNan__CSGUtwFIzz6yxWlr-7GXFC_5a_bGzzVhp039hG6h-IcLVDEPh9w2-S_0-dOzhMHl3dNZTfOdohtVixOPz_8IMwu2Io8yPZDK5NItkiDBt1moqLT9nw5LsXujFhF_CQqmzWSJ8mxfUucZqFwWR82wXFtxvXoE9e5qcet9H_XCFOgvKvCvQfV-jEKaGDNtvaqU3nZt37H-odUDBFhgHRmfQrS1THx02t40wb40plE5ujXH5qK_FU',
       status: 'VALID',
-      color: '#4f378a',
+      color: '#00ca92',
       content: 'A comprehensive multi-national report suggests that countries with higher trust in media reporting experience 15% less market volatility during geopolitical shifts...',
       description: 'A comprehensive multi-national report suggests that countries with higher trust in media reporting experience 15% less market volatility during geopolitical shifts...',
       isFeatured: true,
@@ -300,7 +300,7 @@ export default function ResearchScreen() {
               time: item.isoDate ? new Date(item.isoDate).toLocaleDateString('id-ID') : 'Baru saja',
               image: item.image?.large || item.image?.small || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDk1n2cwxgb2eeXSapYKaUCLycVW2EnVFpuhmQD2q9gJmO33XlWxYqbAyUKmN2Uzht3zUXLzZujRbmgPS91EBuXl464WRyZZCNCbr2gcq6AE-uVBrS3C8yeCOR3MFGrwuumWJJB7sg-UxIE3SD5Ey_L36PAzVeyo-1NHnEa69JBxZNfTkEwu9B5QrnEToZ0w_utUqmYfg8I6rJvQS-FSpEdJGKtsOOnFJpbSEco-n-xx7r137m3Kw7s999AOiMJNffoXUZgLn6JW_w',
               status,
-              color: '#4f378a',
+              color: '#00ca92',
               content: item.contentSnippet || '',
             };
           });
@@ -348,7 +348,7 @@ export default function ResearchScreen() {
         <View style={styles.header}>
           {showSearch ? (
             <View style={styles.searchHeaderWrapper}>
-              <Ionicons name="search" size={18} color="#4f378a" style={{ marginRight: 6 }} />
+              <Ionicons name="search" size={18} color="#00ca92" style={{ marginRight: 6 }} />
               <TextInput
                 style={[styles.searchHeaderInput, { color: theme.text }]}
                 placeholder="Cari riset berita..."
@@ -365,12 +365,12 @@ export default function ResearchScreen() {
             <>
               <View style={styles.headerLeft}>
                 <Pressable onPress={() => setShowSearch(true)} style={styles.iconButton}>
-                  <Ionicons name="search" size={20} color="#4f378a" />
+                  <Ionicons name="search" size={20} color="#00ca92" />
                 </Pressable>
-                <Text style={[styles.brandText, { color: '#4f378a' }]}>Valid.</Text>
+                <Text style={[styles.brandText, { color: '#00ca92' }]}>Veros</Text>
               </View>
               <Pressable style={styles.iconButton}>
-                <Ionicons name="options-outline" size={20} color="#4f378a" />
+                <Ionicons name="options-outline" size={20} color="#00ca92" />
               </Pressable>
             </>
           )}
@@ -404,7 +404,7 @@ export default function ResearchScreen() {
                       style={[
                         styles.categoryChip,
                         isActive
-                          ? { backgroundColor: '#4f378a' }
+                          ? { backgroundColor: '#00ca92' }
                           : { backgroundColor: theme.background === '#ffffff' ? '#f5eff7' : '#232025', borderColor: theme.backgroundElement }
                       ]}>
                       <Text style={[
@@ -433,7 +433,7 @@ export default function ResearchScreen() {
                       style={[
                         styles.sourceChip,
                         isActive
-                          ? { backgroundColor: '#e1d4fd', borderColor: '#4f378a' }
+                          ? { backgroundColor: '#e1d4fd', borderColor: '#00ca92' }
                           : { backgroundColor: theme.background === '#ffffff' ? '#ffffff' : '#1e1e21', borderColor: theme.backgroundElement }
                       ]}>
                       <Text style={[
@@ -451,7 +451,7 @@ export default function ResearchScreen() {
             {/* Articles List */}
             {isLoading ? (
               <View style={styles.emptyContainer}>
-                <ActivityIndicator size="large" color="#4f378a" />
+                <ActivityIndicator size="large" color="#00ca92" />
                 <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
                   Memuat berita...
                 </Text>
@@ -492,7 +492,7 @@ export default function ResearchScreen() {
                         </View>
                         <View style={styles.standardCardDetails}>
                           <View style={styles.cardHeaderRow}>
-                            <Text style={[styles.cardTagSmall, { color: '#4f378a', backgroundColor: '#f3edf7' }]}>
+                            <Text style={[styles.cardTagSmall, { color: '#00ca92', backgroundColor: '#f3edf7' }]}>
                               {art.category}
                             </Text>
                             <Text style={[styles.cardTime, { color: theme.textSecondary }]}>{art.time}</Text>
@@ -518,8 +518,8 @@ export default function ResearchScreen() {
                       disabled={safePage === 1}
                       onPress={() => setPage(p => Math.max(1, p - 1))}
                       style={[styles.pageBtn, safePage === 1 && styles.pageBtnDisabled, { borderColor: theme.backgroundElement }]}>
-                      <Ionicons name="chevron-back" size={16} color={safePage === 1 ? '#ccc' : '#4f378a'} />
-                      <Text style={[styles.pageBtnText, { color: safePage === 1 ? '#ccc' : '#4f378a' }]}>Prev</Text>
+                      <Ionicons name="chevron-back" size={16} color={safePage === 1 ? '#ccc' : '#00ca92'} />
+                      <Text style={[styles.pageBtnText, { color: safePage === 1 ? '#ccc' : '#00ca92' }]}>Prev</Text>
                     </Pressable>
 
                     <Text style={[styles.pageIndicatorText, { color: theme.textSecondary }]}>
@@ -530,8 +530,8 @@ export default function ResearchScreen() {
                       disabled={safePage === totalPages}
                       onPress={() => setPage(p => Math.min(totalPages, p + 1))}
                       style={[styles.pageBtn, safePage === totalPages && styles.pageBtnDisabled, { borderColor: theme.backgroundElement }]}>
-                      <Text style={[styles.pageBtnText, { color: safePage === totalPages ? '#ccc' : '#4f378a' }]}>Next</Text>
-                      <Ionicons name="chevron-forward" size={16} color={safePage === totalPages ? '#ccc' : '#4f378a'} />
+                      <Text style={[styles.pageBtnText, { color: safePage === totalPages ? '#ccc' : '#00ca92' }]}>Next</Text>
+                      <Ionicons name="chevron-forward" size={16} color={safePage === totalPages ? '#ccc' : '#00ca92'} />
                     </Pressable>
                   </View>
                 )}
@@ -711,7 +711,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   verifiedBadge: {
-    backgroundColor: '#4f378a',
+    backgroundColor: '#00ca92',
     borderRadius: 10,
     width: 20,
     height: 20,

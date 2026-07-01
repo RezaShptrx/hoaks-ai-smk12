@@ -132,7 +132,7 @@ export default function OtpScreen() {
               color={theme.text}
             />
           </Pressable>
-          <Text style={[styles.brandText, { color: theme.text }]}>Valid.</Text>
+          <Text style={[styles.brandText, { color: theme.text }]}>Veros</Text>
           <View style={styles.headerPlaceholder} />
         </View>
 
@@ -143,7 +143,7 @@ export default function OtpScreen() {
           <Animated.View style={[styles.contentContainer, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
             {/* Illustration */}
             <View style={styles.illustrationContainer}>
-              <View style={[styles.illustrationBackdrop, { backgroundColor: 'rgba(79, 55, 138, 0.05)' }]} />
+              <View style={[styles.illustrationBackdrop, { backgroundColor: 'rgba(0, 202, 146, 0.05)' }]} />
               <Image
                 alt="Verification Illustration"
                 style={styles.illustration}
@@ -209,7 +209,7 @@ export default function OtpScreen() {
               <Pressable onPress={handleVerify} disabled={isLoading} style={styles.submitButtonContainer}>
                 {({ pressed }) => (
                   <LinearGradient
-                    colors={['#4285F4', '#9b72cb', '#d96570']}
+                    colors={['#00ca92', '#00a87a', '#009e73']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                     style={[styles.submitButton, pressed && styles.buttonPressed, isLoading && styles.buttonDisabled]}>
@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#4f378a',
+    shadowColor: '#00ca92',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,

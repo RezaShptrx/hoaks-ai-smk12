@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -261,8 +261,8 @@ export default function NewsDetailScreen() {
               <RetroStamp status={articleStatus} />
 
               <View style={styles.locationBadge}>
-                <Ionicons name="location-sharp" size={12} color="#4f378a" />
-                <Text style={styles.locationText}>Laporan Fakta Veritas</Text>
+                <Ionicons name="location-sharp" size={12} color="#00ca92" />
+                <Text style={styles.locationText}>Laporan Fakta Veros</Text>
               </View>
             </View>
 
@@ -281,7 +281,7 @@ export default function NewsDetailScreen() {
                   />
                 </View>
                 <View>
-                  <Text style={[styles.authorName, { color: theme.text }]}>Tim Redaksi Veritas</Text>
+                  <Text style={[styles.authorName, { color: theme.text }]}>Tim Redaksi Veros</Text>
                   <Text style={[styles.articleMeta, { color: theme.textSecondary }]}>
                     {articleSource}
                   </Text>
@@ -306,12 +306,12 @@ export default function NewsDetailScreen() {
                 style={({ pressed }) => [
                   styles.readFullBtn,
                   pressed && styles.buttonPressed,
-                  { borderColor: '#4f378a', backgroundColor: theme.background === '#ffffff' ? '#fcfaff' : '#1e1a22' }
+                  { borderColor: '#00ca92', backgroundColor: theme.background === '#ffffff' ? '#fcfaff' : '#1e1a22' }
                 ]}
               >
-                <Ionicons name="globe-outline" size={18} color="#4f378a" />
+                <Ionicons name="globe-outline" size={18} color="#00ca92" />
                 <Text style={styles.readFullBtnText}>Baca Selengkapnya di {sourceDisplayName}</Text>
-                <Ionicons name="arrow-forward" size={16} color="#4f378a" />
+                <Ionicons name="arrow-forward" size={16} color="#00ca92" />
               </Pressable>
             )}
 
@@ -350,13 +350,13 @@ export default function NewsDetailScreen() {
                 <Text style={[styles.updatedText, { color: theme.textSecondary }]}>Diperbarui hari ini</Text>
                 <Pressable onPress={() => router.push('/verify')} style={styles.reportBtn}>
                   <Text style={styles.reportBtnText}>Laporkan Klaim Baru</Text>
-                  <Ionicons name="open-outline" size={14} color="#4f378a" />
+                  <Ionicons name="open-outline" size={14} color="#00ca92" />
                 </Pressable>
               </View>
             </View>
 
             <Text style={[styles.bodyTextSecondary, { color: theme.textSecondary, marginBottom: Spacing.four }]}>
-              Himbauan Tim Cek Fakta Veritas: Biasakan menyaring setiap berita yang masuk ke grup pesan keluarga. Pastikan selalu memverifikasi ulang domain tautan sebelum membagikan ulang.
+              Himbauan Tim Cek Fakta Veros: Biasakan menyaring setiap berita yang masuk ke grup pesan keluarga. Pastikan selalu memverifikasi ulang domain tautan sebelum membagikan ulang.
             </Text>
 
           </Animated.View>
@@ -577,7 +577,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     fontFamily: 'Be Vietnam Pro',
-    color: '#4f378a',
+    color: '#00ca92',
   },
   stampContainerLarge: {
     position: 'absolute',
@@ -619,7 +619,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     fontFamily: 'Be Vietnam Pro',
-    color: '#4f378a',
+    color: '#00ca92',
   },
   buttonPressed: {
     opacity: 0.85,

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -375,13 +375,13 @@ export default function HomeScreen() {
         {/* Top App Bar */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Ionicons name="search" size={22} color="#4f378a" style={styles.searchIcon} />
-            <Text style={[styles.brandText, { color: '#4f378a' }]}>Valid.</Text>
+            <Ionicons name="search" size={22} color="#00ca92" style={styles.searchIcon} />
+            <Text style={[styles.brandText, { color: '#00ca92' }]}>Veros</Text>
           </View>
           <View style={styles.headerRight}>
             <Link href="/report-hoax" asChild>
               <Pressable style={({ pressed }) => [styles.headerReportBtn, pressed && { opacity: 0.85 }]}>
-                <Ionicons name="megaphone-outline" size={14} color="#4f378a" style={{ marginRight: 6 }} />
+                <Ionicons name="megaphone-outline" size={14} color="#00ca92" style={{ marginRight: 6 }} />
                 <Text style={styles.headerReportText}>Laporkan Hoaks</Text>
               </Pressable>
             </Link>
@@ -391,12 +391,12 @@ export default function HomeScreen() {
                   <UserAvatar
                     size={36}
                     name={apiClient.getUser().fullName || apiClient.getUser().email || 'User'}
-                    bgColor="#4f378a"
+                    bgColor="#00ca92"
                     textColor="#ffffff"
                   />
                 ) : (
                   <View style={styles.emptyAvatar}>
-                    <Ionicons name="person" size={18} color="#4f378a" />
+                    <Ionicons name="person" size={18} color="#00ca92" />
                   </View>
                 )}
               </Pressable>
@@ -412,7 +412,7 @@ export default function HomeScreen() {
             
             {/* Welcome Greeting */}
             <View style={styles.welcomeSection}>
-              <Text style={[styles.greetingText, { color: theme.textSecondary }]}>Halo, Teman Valid</Text>
+              <Text style={[styles.greetingText, { color: theme.textSecondary }]}>Halo, Teman Veros</Text>
               <Text style={[styles.welcomeTitle, { color: theme.text }]}>Jelajahi Fakta Hari Ini</Text>
             </View>
 
@@ -431,7 +431,7 @@ export default function HomeScreen() {
                     style={[
                       styles.categoryChip,
                       isActive
-                        ? { backgroundColor: '#4f378a', borderColor: '#4f378a' }
+                        ? { backgroundColor: '#00ca92', borderColor: '#00ca92' }
                         : { backgroundColor: theme.background === '#ffffff' ? '#f4f0f6' : '#232025', borderColor: theme.backgroundElement }
                     ]}>
                     <Text style={[
@@ -540,7 +540,7 @@ export default function HomeScreen() {
                             {
                               width,
                               opacity,
-                              backgroundColor: '#4f378a',
+                              backgroundColor: '#00ca92',
                             },
                           ]}
                         />
@@ -616,13 +616,13 @@ export default function HomeScreen() {
                     <View style={styles.adminBannerContent}>
                       <View style={styles.adminBannerTextCol}>
                         <View style={[styles.adminBadgeRow, { backgroundColor: theme.background === '#ffffff' ? 'rgba(79, 55, 138, 0.1)' : 'rgba(255, 255, 255, 0.1)' }]}>
-                          <Ionicons name="shield-half" size={12} color="#4f378a" style={{ marginRight: 4 }} />
-                          <Text style={[styles.adminBadgeText, { color: '#4f378a' }]}>ADMIN ACCESS</Text>
+                          <Ionicons name="shield-half" size={12} color="#00ca92" style={{ marginRight: 4 }} />
+                          <Text style={[styles.adminBadgeText, { color: '#00ca92' }]}>ADMIN ACCESS</Text>
                         </View>
                         <Text style={[styles.adminBannerTitle, { color: theme.text }]}>Verifikasi Laporan Hoaks</Text>
                         <Text style={[styles.adminBannerSub, { color: theme.textSecondary }]}>Tinjau aduan terbaru yang dikirimkan oleh pengguna aplikasi.</Text>
                       </View>
-                      <View style={[styles.adminBannerArrow, { backgroundColor: '#4f378a' }]}>
+                      <View style={[styles.adminBannerArrow, { backgroundColor: '#00ca92' }]}>
                         <Ionicons name="arrow-forward" size={16} color="#ffffff" />
                       </View>
                     </View>
@@ -734,13 +734,13 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#4f378a',
+    borderColor: '#00ca92',
   },
   headerReportText: {
     fontSize: 11,
     fontWeight: '700',
     fontFamily: 'Be Vietnam Pro',
-    color: '#4f378a',
+    color: '#00ca92',
   },
   avatarWrapper: {
     width: 36,

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -94,9 +94,9 @@ export function ReportHoaxModal({ visible, onClose, prefilledUrl = '', prefilled
             <Ionicons 
               name={sessionReportCount >= 5 ? 'warning' : 'stats-chart'} 
               size={14} 
-              color={sessionReportCount >= 5 ? '#ba1a1a' : '#4f378a'} 
+              color={sessionReportCount >= 5 ? '#ba1a1a' : '#00ca92'} 
             />
-            <Text style={[styles.limitText, { color: sessionReportCount >= 5 ? '#ba1a1a' : '#4f378a' }]}>
+            <Text style={[styles.limitText, { color: sessionReportCount >= 5 ? '#ba1a1a' : '#00ca92' }]}>
               {sessionReportCount >= 5 
                 ? 'Batas harian tercapai (5/5 laporan dikirim)' 
                 : `Sisa kuota harian: ${5 - sessionReportCount} / 5 laporan`
@@ -120,7 +120,7 @@ export function ReportHoaxModal({ visible, onClose, prefilledUrl = '', prefilled
                         style={[
                           styles.chip,
                           isSelected 
-                            ? { backgroundColor: '#4f378a' } 
+                            ? { backgroundColor: '#00ca92' } 
                             : { backgroundColor: theme.background === '#ffffff' ? '#f2ecf4' : '#29252e' }
                         ]}
                       >
@@ -163,8 +163,8 @@ export function ReportHoaxModal({ visible, onClose, prefilledUrl = '', prefilled
               {/* Action Button */}
               {isSubmitting ? (
                 <View style={styles.spinnerWrapper}>
-                  <ActivityIndicator size="small" color="#4f378a" />
-                  <Text style={[styles.spinnerText, { color: theme.textSecondary }]}>Mengirim laporan ke server Veritas...</Text>
+                  <ActivityIndicator size="small" color="#00ca92" />
+                  <Text style={[styles.spinnerText, { color: theme.textSecondary }]}>Mengirim laporan ke server Veros...</Text>
                 </View>
               ) : (
                 <Pressable
@@ -173,10 +173,10 @@ export function ReportHoaxModal({ visible, onClose, prefilledUrl = '', prefilled
                   style={styles.submitBtnWrapper}
                 >
                   <LinearGradient
-                    colors={sessionReportCount >= 5 ? ['#cccccc', '#dddddd'] : ['#4f378a', '#6750a4']}
+                    colors={sessionReportCount >= 5 ? ['#cccccc', '#dddddd'] : ['#00ca92', '#00a87a']}
                     style={styles.submitBtn}
                   >
-                    <Text style={styles.submitBtnText}>Kirim Laporan Ke Veritas Backend</Text>
+                    <Text style={styles.submitBtnText}>Kirim Laporan Ke Veros</Text>
                     <Ionicons name="send" size={14} color="#ffffff" />
                   </LinearGradient>
                 </Pressable>
@@ -191,7 +191,7 @@ export function ReportHoaxModal({ visible, onClose, prefilledUrl = '', prefilled
               </View>
               <Text style={[styles.successTitle, { color: theme.text }]}>Laporan Terkirim!</Text>
               <Text style={[styles.successDesc, { color: theme.textSecondary }]}>
-                Data laporan hoaks telah masuk ke database Veritas backend. Tim verifikator kami akan segera memeriksa klaim ini. Terima kasih atas partisipasi Anda!
+                Data laporan hoaks telah masuk ke database Veros. Tim verifikator kami akan segera memeriksa klaim ini. Terima kasih atas partisipasi Anda!
               </Text>
               
               <Pressable onPress={onClose} style={styles.okBtn}>
@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
   },
   okBtn: {
     height: 44,
-    backgroundColor: '#4f378a',
+    backgroundColor: '#00ca92',
     borderRadius: 22,
     width: '100%',
     justifyContent: 'center',

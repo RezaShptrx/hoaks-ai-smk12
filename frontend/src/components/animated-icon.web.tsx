@@ -1,57 +1,33 @@
 import { Image } from 'expo-image';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
 import Animated, { Keyframe, Easing } from 'react-native-reanimated';
 
 import classes from './animated-icon.module.css';
+
 const DURATION = 300;
 
+// Web splash is a no-op (native splash is handled by the browser/Expo web loader)
 export function AnimatedSplashOverlay() {
   return null;
 }
 
+// ─── Keyframes (unchanged) ────────────────────────────────────────────────────
 const keyframe = new Keyframe({
-  0: {
-    transform: [{ scale: 0 }],
-  },
-  60: {
-    transform: [{ scale: 1.2 }],
-    easing: Easing.elastic(1.2),
-  },
-  100: {
-    transform: [{ scale: 1 }],
-    easing: Easing.elastic(1.2),
-  },
+  0:   { transform: [{ scale: 0 }] },
+  60:  { transform: [{ scale: 1.2 }], easing: Easing.elastic(1.2) },
+  100: { transform: [{ scale: 1 }],   easing: Easing.elastic(1.2) },
 });
 
 const logoKeyframe = new Keyframe({
-  0: {
-    opacity: 0,
-  },
-  60: {
-    transform: [{ scale: 1.2 }],
-    opacity: 0,
-    easing: Easing.elastic(1.2),
-  },
-  100: {
-    transform: [{ scale: 1 }],
-    opacity: 1,
-    easing: Easing.elastic(1.2),
-  },
+  0:   { opacity: 0 },
+  60:  { transform: [{ scale: 1.2 }], opacity: 0, easing: Easing.elastic(1.2) },
+  100: { transform: [{ scale: 1 }],   opacity: 1, easing: Easing.elastic(1.2) },
 });
 
 const glowKeyframe = new Keyframe({
-  0: {
-    transform: [{ rotateZ: '-180deg' }, { scale: 0.8 }],
-    opacity: 0,
-  },
-  [DURATION / 1000]: {
-    transform: [{ rotateZ: '0deg' }, { scale: 1 }],
-    opacity: 1,
-    easing: Easing.elastic(0.7),
-  },
-  100: {
-    transform: [{ rotateZ: '7200deg' }],
-  },
+  0:                { transform: [{ rotateZ: '-180deg' }, { scale: 0.8 }], opacity: 0 },
+  [DURATION / 1000]:{ transform: [{ rotateZ: '0deg' },   { scale: 1 }],   opacity: 1, easing: Easing.elastic(0.7) },
+  100:              { transform: [{ rotateZ: '7200deg' }] },
 });
 
 export function AnimatedIcon() {
@@ -66,12 +42,13 @@ export function AnimatedIcon() {
       </Animated.View>
 
       <Animated.View style={styles.imageContainer} entering={logoKeyframe.duration(DURATION)}>
-        <Image style={styles.image} source={require('@/assets/images/expo-logo.png')} />
+        <Image style={styles.image} source={require('@/assets/images/veros_logo.png')} />
       </Animated.View>
     </View>
   );
 }
 
+// ─── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',

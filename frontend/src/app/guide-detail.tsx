@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -73,7 +73,7 @@ export default function GuideDetailScreen() {
             <View>
               {/* Hero Banner */}
               <LinearGradient
-                colors={['#4f378a', '#7f56da']}
+                colors={['#00ca92', '#00a87a']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.heroBanner}
@@ -87,7 +87,7 @@ export default function GuideDetailScreen() {
 
               {/* Step 1 */}
               <View style={styles.cardSection}>
-                <Text style={[styles.stepNumberText, { color: '#4f378a' }]}>LANGKAH 1</Text>
+                <Text style={[styles.stepNumberText, { color: '#00ca92' }]}>LANGKAH 1</Text>
                 <Text style={[styles.sectionTitle, { color: theme.text }]}>Kumpulkan Bukti Valid</Text>
                 <Text style={[styles.sectionBody, { color: theme.textSecondary }]}>
                   Sebelum melapor, pastikan Anda telah menyiapkan tangkapan layar (screenshot) dari postingan hoaks tersebut beserta tautan (URL) langsung menuju postingan asli. Jangan menyebarkan ulang konten tersebut kecuali untuk tujuan pelaporan.
@@ -96,7 +96,7 @@ export default function GuideDetailScreen() {
 
               {/* Step 2 */}
               <View style={styles.cardSection}>
-                <Text style={[styles.stepNumberText, { color: '#4f378a' }]}>LANGKAH 2</Text>
+                <Text style={[styles.stepNumberText, { color: '#00ca92' }]}>LANGKAH 2</Text>
                 <Text style={[styles.sectionTitle, { color: theme.text }]}>Saluran Laporan Resmi Komdigi</Text>
                 
                 <View style={styles.subCard}>
@@ -125,7 +125,7 @@ export default function GuideDetailScreen() {
                 <View style={styles.copyBoxHeader}>
                   <Text style={[styles.copyBoxTitle, { color: theme.text }]}>Gunakan Template Laporan Ini:</Text>
                   <Pressable onPress={() => handleCopyTemplate(reportTemplateText)} style={styles.copyBtn}>
-                    <Ionicons name="copy-outline" size={16} color="#4f378a" />
+                    <Ionicons name="copy-outline" size={16} color="#00ca92" />
                     <Text style={styles.copyBtnText}>Salin</Text>
                   </Pressable>
                 </View>
@@ -136,7 +136,7 @@ export default function GuideDetailScreen() {
 
               {/* Step 3 */}
               <View style={styles.cardSection}>
-                <Text style={[styles.stepNumberText, { color: '#4f378a' }]}>LANGKAH 3</Text>
+                <Text style={[styles.stepNumberText, { color: '#00ca92' }]}>LANGKAH 3</Text>
                 <Text style={[styles.sectionTitle, { color: theme.text }]}>Laporkan Melalui Mafindo</Text>
                 <Text style={[styles.sectionBody, { color: theme.textSecondary }]}>
                   Masyarakat Anti Fitnah Indonesia (Mafindo) juga menyediakan saluran bot pemeriksaan fakta WhatsApp di nomor <Text style={{ fontWeight: '800', color: theme.text }}>0818-380-848</Text>. Kirimkan kata kunci informasi mencurigakan untuk mencocokkannya dengan database klarifikasi fakta nasional.
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
     fontFamily: 'Be Vietnam Pro',
-    color: '#4f378a',
+    color: '#00ca92',
   },
   copyBoxBody: {
     fontSize: 11.5,

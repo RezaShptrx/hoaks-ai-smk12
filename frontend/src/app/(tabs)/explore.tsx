@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -133,8 +133,8 @@ export default function ExploreScreen() {
     {
       id: 'm1',
       sender: 'ai',
-      text: 'Halo! Saya Asisten Veritas — asisten AI pendamping anti-hoaks Anda.\n\nSaya memiliki akses pencarian web real-time untuk memberikan panduan umum dan informasi edukasi anti-hoaks. Tanyakan:\n\n• Cara melaporkan hoaks ke Kominfo / Komdigi\n• Penjelasan regulasi hukum UU ITE\n• Panduan dan ciri-ciri hoaks secara umum\n• Informasi lembaga cek fakta resmi\n\n*Catatan: Obrolan chat ini bersifat informatif & netral. Untuk memverifikasi kebenaran klaim berita atau foto secara resmi, silakan gunakan fitur Verify pada menu navigasi.*',
-      timestamp: 'Veritas AI'
+      text: 'Halo! Saya Asisten Veros — asisten AI pendamping anti-hoaks Anda.\n\nSaya memiliki akses pencarian web real-time untuk memberikan panduan umum dan informasi edukasi anti-hoaks. Tanyakan:\n\n• Cara melaporkan hoaks ke Kominfo / Komdigi\n• Penjelasan regulasi hukum UU ITE\n• Panduan dan ciri-ciri hoaks secara umum\n• Informasi lembaga cek fakta resmi\n\n*Catatan: Obrolan chat ini bersifat informatif & netral. Untuk memverifikasi kebenaran klaim berita atau foto secara resmi, silakan gunakan fitur Verify pada menu navigasi.*',
+      timestamp: 'Veros AI'
     }
   ]);
 
@@ -260,7 +260,7 @@ export default function ExploreScreen() {
   const handleUploadCustomImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Izin Ditolak', 'Veritas membutuhkan izin akses galeri untuk menganalisis foto.');
+      Alert.alert('Izin Ditolak', 'Veros membutuhkan izin akses galeri untuk menganalisis foto.');
       return;
     }
 
@@ -482,7 +482,7 @@ export default function ExploreScreen() {
         
         {/* Header with Segmented Tabs */}
         <View style={styles.header}>
-          <Text style={[styles.brandText, { color: '#4f378a' }]}>AI Explore</Text>
+          <Text style={[styles.brandText, { color: '#00ca92' }]}>AI Explore</Text>
           <View style={[styles.tabBar, { backgroundColor: theme.background === '#ffffff' ? '#f3edf7' : '#232025' }]}>
             <Pressable
               onPress={() => setActiveTab('chat')}
@@ -513,9 +513,9 @@ export default function ExploreScreen() {
 
               {/* Model / Feature Badge */}
               <View style={[styles.modelStrip, { backgroundColor: theme.background, borderBottomColor: theme.backgroundElement }]}>
-                <View style={[styles.modelChip, { backgroundColor: '#4f378a', borderColor: '#4f378a' }]}>
+                <View style={[styles.modelChip, { backgroundColor: '#00ca92', borderColor: '#00ca92' }]}>
                   <Ionicons name="sparkles" size={12} color="#fff" />
-                  <Text style={[styles.modelChipText, { color: '#fff' }]}>Veritas AI</Text>
+                  <Text style={[styles.modelChipText, { color: '#fff' }]}>Veros AI</Text>
                 </View>
                 <View style={[styles.modelChip, { backgroundColor: '#0066ff', borderColor: '#0066ff' }]}>
                   <Ionicons name="search" size={12} color="#fff" />
@@ -560,8 +560,8 @@ export default function ExploreScreen() {
                       {isAi && aiMsg.sources && aiMsg.sources.length > 0 && (
                         <View style={{ paddingLeft: 40, marginTop: 4, marginBottom: 4, gap: 4 }}>
                           {aiMsg.sources.map((src, i) => (
-                            <View key={i} style={[styles.sourceCard, { backgroundColor: theme.background === '#ffffff' ? '#eef2ff' : '#1e1e30', borderColor: '#4f378a22' }]}>
-                              <Ionicons name="globe-outline" size={10} color="#4f378a" />
+                            <View key={i} style={[styles.sourceCard, { backgroundColor: theme.background === '#ffffff' ? '#eef2ff' : '#1e1e30', borderColor: '#00ca9222' }]}>
+                              <Ionicons name="globe-outline" size={10} color="#00ca92" />
                               <Text style={[styles.sourceCardText, { color: theme.textSecondary }]} numberOfLines={1}>{src.title}</Text>
                             </View>
                           ))}
@@ -576,7 +576,7 @@ export default function ExploreScreen() {
                             style={styles.redirectVerifyBtn}
                           >
                             <LinearGradient
-                              colors={['#4f378a', '#6750a4']}
+                              colors={['#00ca92', '#00a87a']}
                               start={{ x: 0, y: 0 }}
                               end={{ x: 1, y: 0 }}
                               style={styles.redirectVerifyGradient}
@@ -599,8 +599,8 @@ export default function ExploreScreen() {
                     </View>
                     <View style={[styles.bubble, styles.aiBubble, { backgroundColor: theme.background === '#ffffff' ? '#f3edf7' : '#29252c', borderColor: theme.backgroundElement }]}>
                       <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
-                        <ActivityIndicator size="small" color="#4f378a" />
-                        <Text style={{ fontSize: 12, color: theme.textSecondary }}>Asisten Veritas sedang mencari & menganalisis...</Text>
+                        <ActivityIndicator size="small" color="#00ca92" />
+                        <Text style={{ fontSize: 12, color: theme.textSecondary }}>Asisten Veros sedang mencari & menganalisis...</Text>
                       </View>
                     </View>
                   </View>
@@ -642,7 +642,7 @@ export default function ExploreScreen() {
                 />
                 <Pressable onPress={() => handleSendMessage()} style={[styles.sendButton, isChatLoading && { opacity: 0.5 }]} disabled={isChatLoading}>
                   <LinearGradient
-                    colors={['#4f378a', '#6750a4']}
+                    colors={['#00ca92', '#00a87a']}
                     style={styles.sendGradient}>
                     {isChatLoading
                       ? <ActivityIndicator size="small" color="#ffffff" />
@@ -658,7 +658,7 @@ export default function ExploreScreen() {
               {!selectedSample ? (
                 // State 1: Choose File / Image to check
                 <View style={styles.sandboxIntro}>
-                  <Ionicons name="finger-print" size={32} color="#4f378a" style={{ marginBottom: 4 }} />
+                  <Ionicons name="finger-print" size={32} color="#00ca92" style={{ marginBottom: 4 }} />
                   <Text style={[styles.sandboxIntroTitle, { color: theme.text }]}>TruthLens Forensik Sandbox</Text>
                   <Text style={[styles.sandboxIntroDesc, { color: theme.textSecondary }]}>
                     Alat analisis digital interaktif untuk mendeteksi rekayasa foto, suntingan photoshop pada dokumen, ketidakcocokan metadata gambar, dan deepfake.
@@ -670,12 +670,12 @@ export default function ExploreScreen() {
                       style={({ pressed }) => [
                         styles.sampleCard,
                         pressed && styles.btnPressed,
-                        { borderColor: '#4f378a', borderStyle: 'dashed', borderWidth: 2, backgroundColor: theme.background === '#ffffff' ? '#fcfaff' : '#1a171c' }
+                        { borderColor: '#00ca92', borderStyle: 'dashed', borderWidth: 2, backgroundColor: theme.background === '#ffffff' ? '#fcfaff' : '#1a171c' }
                       ]}
                     >
                       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', minHeight: 120 }}>
-                        <Ionicons name="cloud-upload" size={32} color="#4f378a" style={{ marginBottom: 8 }} />
-                        <Text style={[styles.sampleCardText, { color: '#4f378a', textAlign: 'center', fontWeight: '800' }]}>Unggah Foto Anda</Text>
+                        <Ionicons name="cloud-upload" size={32} color="#00ca92" style={{ marginBottom: 8 }} />
+                        <Text style={[styles.sampleCardText, { color: '#00ca92', textAlign: 'center', fontWeight: '800' }]}>Unggah Foto Anda</Text>
                         <Text style={{ fontSize: 9, color: theme.textSecondary, textAlign: 'center', marginTop: 4 }}>Pilih dari Galeri</Text>
                       </View>
                     </Pressable>
@@ -778,7 +778,7 @@ export default function ExploreScreen() {
                         {/* 1. EXIF Check */}
                         <View style={styles.checkItem}>
                           <View style={styles.checkHeader}>
-                            <Ionicons name="calendar-outline" size={16} color="#4f378a" />
+                            <Ionicons name="calendar-outline" size={16} color="#00ca92" />
                             <Text style={[styles.checkTitle, { color: theme.text }]}>Integritas Metadata EXIF</Text>
                           </View>
                           <Text style={[styles.checkBody, { color: theme.textSecondary }]}>{forensicReport.metadata}</Text>
@@ -787,7 +787,7 @@ export default function ExploreScreen() {
                         {/* 2. ELA Check */}
                         <View style={styles.checkItem}>
                           <View style={styles.checkHeader}>
-                            <Ionicons name="color-wand-outline" size={16} color="#4f378a" />
+                            <Ionicons name="color-wand-outline" size={16} color="#00ca92" />
                             <Text style={[styles.checkTitle, { color: theme.text }]}>Analisis Error Level (Kompresi Gambar)</Text>
                           </View>
                           <Text style={[styles.checkBody, { color: theme.textSecondary }]}>{forensicReport.elaAnalysis}</Text>
@@ -796,7 +796,7 @@ export default function ExploreScreen() {
                         {/* 3. Deepfake Check */}
                         <View style={styles.checkItem}>
                           <View style={styles.checkHeader}>
-                            <Ionicons name="hardware-chip-outline" size={16} color="#4f378a" />
+                            <Ionicons name="hardware-chip-outline" size={16} color="#00ca92" />
                             <Text style={[styles.checkTitle, { color: theme.text }]}>Deteksi Sintetis AI (Deepfake)</Text>
                           </View>
                           <Text style={[styles.checkBody, { color: theme.textSecondary }]}>{forensicReport.aiDetection}</Text>
@@ -805,7 +805,7 @@ export default function ExploreScreen() {
                         {/* 4. Reverse Search Check */}
                         <View style={styles.checkItem}>
                           <View style={styles.checkHeader}>
-                            <Ionicons name="search-circle-outline" size={18} color="#4f378a" />
+                            <Ionicons name="search-circle-outline" size={18} color="#00ca92" />
                             <Text style={[styles.checkTitle, { color: theme.text }]}>Riwayat Pencarian Sumber Pertama</Text>
                           </View>
                           <Text style={[styles.checkBody, { color: theme.textSecondary }]}>{forensicReport.reverseIndex}</Text>
@@ -819,7 +819,7 @@ export default function ExploreScreen() {
                       <Pressable onPress={handleResetSandbox} style={styles.resetBtnWrapper}>
                         {({ pressed }) => (
                           <LinearGradient
-                            colors={['#4f378a', '#6750a4']}
+                            colors={['#00ca92', '#00a87a']}
                             style={[styles.resetBtn, pressed && styles.btnPressed]}
                           >
                             <Text style={styles.resetBtnText}>Analisis Berkas Lainnya</Text>
@@ -885,7 +885,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tabButtonActive: {
-    backgroundColor: '#4f378a',
+    backgroundColor: '#00ca92',
   },
   tabText: {
     fontSize: 12,
@@ -1005,7 +1005,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#4f378a',
+    backgroundColor: '#00ca92',
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 2,
@@ -1021,7 +1021,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 4,
   },
   userBubble: {
-    backgroundColor: '#4f378a',
+    backgroundColor: '#00ca92',
     borderTopRightRadius: 4,
   },
   messageText: {
@@ -1079,7 +1079,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Be Vietnam Pro',
   },
   suggestionChipText: {
-    color: '#4f378a',
+    color: '#00ca92',
     fontSize: 11,
     fontFamily: 'Be Vietnam Pro',
     fontWeight: '700',
@@ -1172,7 +1172,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontFamily: 'Be Vietnam Pro',
     fontWeight: '700',
-    color: '#4f378a',
+    color: '#00ca92',
   },
   analyzerContainer: {
     width: '100%',
@@ -1397,7 +1397,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#4f378a',
+    backgroundColor: '#00ca92',
     color: '#ffffff',
     textAlign: 'center',
     lineHeight: 24,
@@ -1420,7 +1420,7 @@ const styles = StyleSheet.create({
   },
   modalCloseBtn: {
     height: 48,
-    backgroundColor: '#4f378a',
+    backgroundColor: '#00ca92',
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -1510,6 +1510,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     fontFamily: 'Be Vietnam Pro',
-    color: '#4f378a',
+    color: '#00ca92',
   },
 });

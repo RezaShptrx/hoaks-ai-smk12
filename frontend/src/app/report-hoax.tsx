@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -154,9 +154,9 @@ export default function ReportHoaxScreen() {
             <Ionicons 
               name={dailyReportCount >= 5 ? 'warning' : 'stats-chart'} 
               size={15} 
-              color={dailyReportCount >= 5 ? '#ba1a1a' : '#4f378a'} 
+              color={dailyReportCount >= 5 ? '#ba1a1a' : '#00ca92'} 
             />
-            <Text style={[styles.limitText, { color: dailyReportCount >= 5 ? '#ba1a1a' : '#4f378a' }]}>
+            <Text style={[styles.limitText, { color: dailyReportCount >= 5 ? '#ba1a1a' : '#00ca92' }]}>
               {dailyReportCount >= 5 
                 ? 'Batas harian tercapai (5/5 laporan terkirim hari ini)' 
                 : `Kuota Laporan Hari Ini: ${5 - dailyReportCount} / 5 Laporan Tersisa`
@@ -167,7 +167,7 @@ export default function ReportHoaxScreen() {
           {!success ? (
             <View style={styles.formContainer}>
               <Text style={[styles.introText, { color: theme.textSecondary }]}>
-                Bantu komunitas Veritas menyaring berita boaks. Laporan Anda akan diperiksa secara manual oleh dewan verifikator independen kami.
+                Bantu komunitas Veros menyaring berita boaks. Laporan Anda akan diperiksa secara manual oleh dewan verifikator independen kami.
               </Text>
 
               {/* Category */}
@@ -183,7 +183,7 @@ export default function ReportHoaxScreen() {
                         style={[
                           styles.chip,
                           isSelected 
-                            ? { backgroundColor: '#4f378a' } 
+                            ? { backgroundColor: '#00ca92' } 
                             : { backgroundColor: theme.background === '#ffffff' ? '#f2ecf4' : '#29252e' }
                         ]}
                       >
@@ -240,7 +240,7 @@ export default function ReportHoaxScreen() {
                   <Ionicons 
                     name={screenshotUri ? 'checkmark-circle' : 'cloud-upload-outline'} 
                     size={24} 
-                    color={screenshotUri ? '#15803d' : '#4f378a'} 
+                    color={screenshotUri ? '#15803d' : '#00ca92'} 
                   />
                   <Text style={[styles.uploadText, { color: screenshotUri ? '#15803d' : theme.textSecondary }]}>
                     {screenshotUri 
@@ -254,7 +254,7 @@ export default function ReportHoaxScreen() {
               {/* Submit Button */}
               {isSubmitting ? (
                 <View style={styles.loaderContainer}>
-                  <ActivityIndicator size="small" color="#4f378a" />
+                  <ActivityIndicator size="small" color="#00ca92" />
                   <Text style={[styles.loaderText, { color: theme.textSecondary }]}>Mengirim data laporan ke server...</Text>
                 </View>
               ) : (
@@ -265,7 +265,7 @@ export default function ReportHoaxScreen() {
                 >
                   {({ pressed }) => (
                     <LinearGradient
-                      colors={dailyReportCount >= 5 ? ['#cccccc', '#dddddd'] : ['#4f378a', '#6750a4']}
+                      colors={dailyReportCount >= 5 ? ['#cccccc', '#dddddd'] : ['#00ca92', '#00a87a']}
                       style={[styles.submitBtn, pressed && styles.btnPressed]}
                     >
                       <Text style={styles.submitBtnText}>Kirim Laporan</Text>
@@ -477,7 +477,7 @@ const styles = StyleSheet.create({
   },
   backHomeBtn: {
     height: 48,
-    backgroundColor: '#4f378a',
+    backgroundColor: '#00ca92',
     borderRadius: 24,
     width: '100%',
     justifyContent: 'center',

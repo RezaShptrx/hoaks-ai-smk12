@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -177,7 +177,7 @@ export default function ProfileSetupScreen() {
               <View style={styles.headerPlaceholder} />
               <Text style={[styles.brandText, { color: theme.text }]}>Profil Saya</Text>
               <Pressable onPress={() => setIsSetupComplete(false)} style={styles.editBtnHeader}>
-                <Ionicons name="create-outline" size={20} color="#4f378a" />
+                <Ionicons name="create-outline" size={20} color="#00ca92" />
               </Pressable>
             </View>
 
@@ -188,7 +188,7 @@ export default function ProfileSetupScreen() {
                 
                 {/* Profile Card Header */}
                 <LinearGradient
-                  colors={['#4f378a', '#6750a4']}
+                  colors={['#00ca92', '#00a87a']}
                   style={styles.profileDetailCard}>
                   <View style={styles.profileDetailAvatarCircle}>
                     <Ionicons name="person" size={56} color="#ffffff" />
@@ -197,7 +197,7 @@ export default function ProfileSetupScreen() {
                     {username ? username : 'Teman Valid'}
                   </Text>
                   <Text style={styles.profileDetailEmail}>
-                    {apiClient.getUser()?.email || 'user@valid.com'}
+                    {apiClient.getUser()?.email || 'user@veros.com'}
                   </Text>
                   {bio ? (
                     <Text style={styles.profileDetailBio}>{bio}</Text>
@@ -258,7 +258,7 @@ export default function ProfileSetupScreen() {
                   <Text style={[styles.detailsSectionTitle, { color: theme.text }]}>Minat Topik</Text>
                   <View style={styles.chipsRow}>
                     {selectedInterests.map((interest) => (
-                      <View key={interest} style={[styles.detailChip, { borderColor: '#4f378a', backgroundColor: '#e1d4fd' }]}>
+                      <View key={interest} style={[styles.detailChip, { borderColor: '#00ca92', backgroundColor: '#e1d4fd' }]}>
                         <Text style={{ color: '#22005d', fontSize: 13, fontWeight: '600' }}>{interest}</Text>
                       </View>
                     ))}
@@ -292,7 +292,7 @@ export default function ProfileSetupScreen() {
                       ]}
                     >
                       <View style={styles.menuRowLeft}>
-                        <Ionicons name="shield-checkmark-outline" size={20} color="#4f378a" />
+                        <Ionicons name="shield-checkmark-outline" size={20} color="#00ca92" />
                         <Text style={[styles.menuRowText, { color: theme.text }]}>Moderasi Laporan Hoaks</Text>
                       </View>
                       <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
@@ -351,7 +351,7 @@ export default function ProfileSetupScreen() {
                     <Text style={[styles.progressStepText, { color: theme.textSecondary }]}>
                       {step === 1 ? 'Langkah 1 dari 2' : 'Langkah 2 dari 2'}
                     </Text>
-                    <Text style={[styles.progressPercentText, { color: '#4f378a' }]}>
+                    <Text style={[styles.progressPercentText, { color: '#00ca92' }]}>
                       {step === 1 ? '50%' : '100%'}
                     </Text>
                   </View>
@@ -361,7 +361,7 @@ export default function ProfileSetupScreen() {
                         styles.progressBar,
                         {
                           width: step === 1 ? '50%' : '100%',
-                          backgroundColor: '#4f378a',
+                          backgroundColor: '#00ca92',
                         },
                       ]}
                     />
@@ -394,7 +394,7 @@ export default function ProfileSetupScreen() {
                       </View>
                       <Pressable style={styles.avatarEditBtn}>
                         <LinearGradient
-                          colors={['#4285F4', '#9B51E0']}
+                          colors={['#4285F4', '#00ca92']}
                           style={styles.gradientEditBtn}>
                           <Ionicons
                             name="add"
@@ -449,7 +449,7 @@ export default function ProfileSetupScreen() {
                                 style={[
                                   styles.chip,
                                   isActive
-                                    ? [styles.chipActive, { borderColor: '#4f378a', backgroundColor: '#e1d4fd' }]
+                                    ? [styles.chipActive, { borderColor: '#00ca92', backgroundColor: '#e1d4fd' }]
                                     : [styles.chipInactive, { borderColor: theme.backgroundElement }],
                                 ]}>
                                 <Text style={[styles.chipText, isActive ? { color: '#22005d', fontWeight: '600' } : { color: theme.textSecondary }]}>
@@ -474,7 +474,7 @@ export default function ProfileSetupScreen() {
                       <Pressable onPress={handleNextStep} disabled={isLoading} style={styles.primaryButtonContainer}>
                         {({ pressed }) => (
                           <LinearGradient
-                            colors={['#4285F4', '#9B51E0']}
+                            colors={['#4285F4', '#00ca92']}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 1 }}
                             style={[styles.primaryButton, pressed && styles.buttonPressed, isLoading && styles.buttonDisabled]}>
@@ -511,7 +511,7 @@ export default function ProfileSetupScreen() {
                     <View style={styles.stepHeader}>
                       <Text style={[styles.stepTitle, { color: theme.text }]}>Sedikit lagi...</Text>
                       <Text style={[styles.stepSubtitle, { color: theme.textSecondary }]}>
-                        Informasi ini akan membantu kami memvalidasi identitas Anda dan menyesuaikan pengalaman di Valid.
+                        Informasi ini akan membantu kami memvalidasi identitas Anda dan menyesuaikan pengalaman di Veros
                       </Text>
                     </View>
 
@@ -623,7 +623,7 @@ export default function ProfileSetupScreen() {
                       <Pressable onPress={handleFinish} disabled={isLoading} style={styles.primaryButtonContainer}>
                         {({ pressed }) => (
                           <LinearGradient
-                            colors={['#4f378a', '#6750a4']}
+                            colors={['#00ca92', '#00a87a']}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 1 }}
                             style={[styles.primaryButton, pressed && styles.buttonPressed, isLoading && styles.buttonDisabled]}>
@@ -641,7 +641,7 @@ export default function ProfileSetupScreen() {
                       </Pressable>
 
                       <Text style={[styles.footerNoticeText, { color: theme.textSecondary }]}>
-                        Data Anda dienkripsi dan hanya digunakan untuk keperluan verifikasi akun di platform Valid.
+                        Data Anda dienkripsi dan hanya digunakan untuk keperluan verifikasi akun di platform Veros
                       </Text>
                     </View>
                   </View>
@@ -664,7 +664,7 @@ export default function ProfileSetupScreen() {
               <Ionicons
                 name="checkmark-circle"
                 size={40}
-                color="#4f378a"
+                color="#00ca92"
               />
             </View>
             <Text style={[styles.modalTitle, { color: theme.text }]}>Profil Diperbarui!</Text>
@@ -680,7 +680,7 @@ export default function ProfileSetupScreen() {
               style={styles.modalBtnContainer}>
               {({ pressed }) => (
                 <LinearGradient
-                  colors={['#4f378a', '#6750a4']}
+                  colors={['#00ca92', '#00a87a']}
                   style={[styles.modalBtn, pressed && styles.buttonPressed]}>
                   <Text style={styles.modalBtnText}>Ke Beranda</Text>
                 </LinearGradient>
@@ -970,7 +970,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#4f378a',
+    shadowColor: '#00ca92',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,

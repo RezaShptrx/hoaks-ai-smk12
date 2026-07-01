@@ -83,7 +83,7 @@ export default function ForgotPasswordScreen() {
               color={theme.text}
             />
           </Pressable>
-          <Text style={[styles.brandText, { color: theme.text }]}>Valid.</Text>
+          <Text style={[styles.brandText, { color: theme.text }]}>Veros</Text>
           <View style={styles.headerPlaceholder} />
         </View>
 
@@ -131,7 +131,7 @@ export default function ForgotPasswordScreen() {
               <Pressable onPress={handleResetRequest} disabled={isLoading} style={styles.submitButtonContainer}>
                 {({ pressed }) => (
                   <LinearGradient
-                    colors={['#4285F4', '#4f378a']}
+                    colors={['#00ca92', '#00a87a']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={[styles.submitButton, pressed && styles.buttonPressed, isLoading && styles.buttonDisabled]}>
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#4f378a',
+    shadowColor: '#00ca92',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
