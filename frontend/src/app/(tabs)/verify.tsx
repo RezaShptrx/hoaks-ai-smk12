@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -189,13 +189,18 @@ export default function VerifyScreen() {
         if (selectedImageUri) {
           const formData = new FormData();
           formData.append('query', claimQuery || 'Image Verification');
+          formData.append('claim', claimQuery || 'Image Verification');
+          
           const ext = selectedImageName?.split('.').pop()?.toLowerCase() || 'jpg';
           const fileToUpload = {
-            uri: Platform.OS === 'android' ? selectedImageUri : selectedImageUri.replace('file://', ''),
+            uri: selectedImageUri,
             name: selectedImageName || 'image.jpg',
             type: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
           };
+          // Append to multiple keys to ensure compatibility with n8n workflow expectations
           formData.append('screenshot', fileToUpload as any);
+          formData.append('image', fileToUpload as any);
+          formData.append('file', fileToUpload as any);
 
           response = await fetch('https://checkhoaks.app.n8n.cloud/webhook/fact-check', {
             method: 'POST',
@@ -232,13 +237,18 @@ export default function VerifyScreen() {
           if (selectedImageUri) {
             const formData = new FormData();
             formData.append('query', claimQuery || 'Image Verification');
+            formData.append('claim', claimQuery || 'Image Verification');
+
             const ext = selectedImageName?.split('.').pop()?.toLowerCase() || 'jpg';
             const fileToUpload = {
-              uri: Platform.OS === 'android' ? selectedImageUri : selectedImageUri.replace('file://', ''),
+              uri: selectedImageUri,
               name: selectedImageName || 'image.jpg',
               type: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
             };
+            // Append to multiple keys to ensure compatibility with n8n workflow expectations
             formData.append('screenshot', fileToUpload as any);
+            formData.append('image', fileToUpload as any);
+            formData.append('file', fileToUpload as any);
 
             response = await fetch('https://checkhoaks.app.n8n.cloud/webhook-test/fact-check', {
               method: 'POST',
@@ -605,21 +615,60 @@ export default function VerifyScreen() {
                   transform: [{ scale: resultsScale }],
                 }
               ]}>
-                {/* Result Card Image Header with Retro Stamp Overlay */}
-                <View style={styles.resultImageWrapper}>
-                  <Image
-                    style={styles.resultImage}
-                    source={{ uri: resultData.image }}
-                    contentFit="cover"
-                  />
-                  <RetroStamp status={resultData.verdict} />
-                </View>
+                {/* Modern Verification Hero Banner (Replacing generic/unwanted photo) */}
+                <LinearGradient
+                  colors={
+                    resultData.verdict === 'HOAKS'
+                      ? ['#ba1a1a', '#93000a'] // Red
+                      : resultData.verdict === 'RAGU-RAGU'
+                      ? ['#d97706', '#b45309'] // Amber
+                      : ['#15803d', '#166534'] // Green
+                  }
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.resultsHeroHeader}
+                >
+                  <View style={styles.heroHeaderCircle}>
+                    <Ionicons
+                      name={
+                        resultData.verdict === 'HOAKS'
+                          ? 'alert-circle-outline'
+                          : resultData.verdict === 'RAGU-RAGU'
+                          ? 'help-circle-outline'
+                          : 'shield-checkmark-outline'
+                      }
+                      size={36}
+                      color="#ffffff"
+                    />
+                  </View>
+                  <Text style={styles.heroHeaderStatusText}>Verifikasi Selesai</Text>
+                  <Text style={styles.heroHeaderSubText}>Hasil keputusan analisis data cek fakta</Text>
+                </LinearGradient>
 
                 {/* Result Top Ribbon */}
                 <View style={[styles.resultRibbon, { backgroundColor: resultData.color }]} />
 
                 <View style={styles.resultsContent}>
-                  {/* Verdict Header */}
+                  {/* Grid Data Analisis / Metrics */}
+                  <View style={styles.statsGrid}>
+                    <View style={[styles.statsCard, { backgroundColor: theme.background === '#ffffff' ? '#fdfaff' : '#1e1a24', borderColor: theme.backgroundElement }]}>
+                      <Ionicons name="speedometer-outline" size={15} color="#4f378a" style={{ marginBottom: 4 }} />
+                      <Text style={[styles.statsCardLabel, { color: theme.textSecondary }]}>Metode Cek</Text>
+                      <Text style={[styles.statsCardValue, { color: theme.text }]}>Real-time AI</Text>
+                    </View>
+                    <View style={[styles.statsCard, { backgroundColor: theme.background === '#ffffff' ? '#fdfaff' : '#1e1a24', borderColor: theme.backgroundElement }]}>
+                      <Ionicons name="ribbon-outline" size={15} color="#4f378a" style={{ marginBottom: 4 }} />
+                      <Text style={[styles.statsCardLabel, { color: theme.textSecondary }]}>Akurasi Cek</Text>
+                      <Text style={[styles.statsCardValue, { color: theme.text }]}>{resultData.confidence}</Text>
+                    </View>
+                    <View style={[styles.statsCard, { backgroundColor: theme.background === '#ffffff' ? '#fdfaff' : '#1e1a24', borderColor: theme.backgroundElement }]}>
+                      <Ionicons name="shield-outline" size={15} color={resultData.color} style={{ marginBottom: 4 }} />
+                      <Text style={[styles.statsCardLabel, { color: theme.textSecondary }]}>Keputusan</Text>
+                      <Text style={[styles.statsCardValue, { color: resultData.color }]}>{resultData.verdict}</Text>
+                    </View>
+                  </View>
+
+                  {/* Verdict Header (Optional summary row) */}
                   <View style={styles.verdictHeader}>
                     <View style={[styles.badge, { backgroundColor: resultData.color + '15' }]}>
                       <Text style={[styles.badgeText, { color: resultData.color }]}>
@@ -627,7 +676,7 @@ export default function VerifyScreen() {
                       </Text>
                     </View>
                     <View style={styles.confidenceRow}>
-                      <Text style={[styles.confidenceLabel, { color: theme.textSecondary }]}>Kepercayaan AI:</Text>
+                      <Text style={[styles.confidenceLabel, { color: theme.textSecondary }]}>Skor Kepercayaan:</Text>
                       <Text style={[styles.confidenceValue, { color: resultData.color }]}>{resultData.confidence}</Text>
                     </View>
                   </View>
@@ -801,7 +850,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.two,
   },
   inputModule: {
-    borderRadius: 16,
+    borderRadius: 12,
     padding: Spacing.three,
     width: '100%',
     shadowColor: '#1a365d',
@@ -844,7 +893,7 @@ const styles = StyleSheet.create({
   },
   verifyBtn: {
     height: 48,
-    borderRadius: 24,
+    borderRadius: 12,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -876,7 +925,7 @@ const styles = StyleSheet.create({
   },
   resultsCard: {
     borderWidth: 1,
-    borderRadius: 20,
+    borderRadius: 12,
     overflow: 'hidden',
     shadowColor: '#1a365d',
     shadowOffset: { width: 0, height: 6 },
@@ -958,7 +1007,7 @@ const styles = StyleSheet.create({
   },
   resetBtn: {
     height: 48,
-    borderRadius: 24,
+    borderRadius: 12,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -970,16 +1019,64 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontFamily: 'Be Vietnam Pro',
   },
-  resultImageWrapper: {
-    width: '100%',
-    height: 180,
-    position: 'relative',
-    overflow: 'hidden',
+  // ── Modern Verification Hero Banner & Stats Grid ────────────────────────────
+  resultsHeroHeader: {
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
   },
-  resultImage: {
-    width: '100%',
-    height: '100%',
+  heroHeaderCircle: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
   },
+  heroHeaderStatusText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#ffffff',
+    fontFamily: 'Be Vietnam Pro',
+    letterSpacing: -0.3,
+  },
+  heroHeaderSubText: {
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontFamily: 'Be Vietnam Pro',
+    textAlign: 'center',
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: Spacing.four,
+  },
+  statsCard: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statsCardLabel: {
+    fontSize: 9,
+    fontFamily: 'Be Vietnam Pro',
+    fontWeight: '600',
+    marginBottom: 2,
+    textAlign: 'center',
+  },
+  statsCardValue: {
+    fontSize: 12,
+    fontFamily: 'Be Vietnam Pro',
+    fontWeight: '800',
+    textAlign: 'center',
+  },
+  // ────────────────────────────────────────────────────────────────────────────
   stampContainer: {
     position: 'absolute',
     top: 16,

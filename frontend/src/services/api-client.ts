@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // and falls back to 10.0.2.2 for emulator or localhost for web.
 // NOTE: Jika mengetes dengan HP dari jarak jauh (menggunakan tunnel),
 // masukkan URL tunnel backend Anda di sini (contoh: 'https://xxxxx.ngrok-free.app')
-const TUNNEL_URL: string = 'https://thin-mugs-obey.loca.lt'; 
+const TUNNEL_URL: string = ''; 
 
 const getBaseUrl = () => {
   if (TUNNEL_URL !== '') {
@@ -141,6 +141,8 @@ export const apiClient = {
     if (jwtToken) {
       headers.set('Authorization', `Bearer ${jwtToken}`);
     }
+    // Bypass localtunnel warning page to prevent HTML responses
+    headers.set('bypass-tunnel-reminder', 'true');
 
     const config = {
       ...options,

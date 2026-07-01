@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -300,12 +300,16 @@ export default function ExploreScreen() {
         const formData = new FormData();
         const ext = customName?.split('.').pop()?.toLowerCase() || 'jpg';
         const fileToUpload = {
-          uri: Platform.OS === 'android' ? customUri : customUri.replace('file://', ''),
+          uri: customUri,
           name: customName || 'image.jpg',
           type: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
         };
+        // Append to multiple keys to ensure compatibility with n8n workflow expectations
         formData.append('screenshot', fileToUpload as any);
+        formData.append('image', fileToUpload as any);
+        formData.append('file', fileToUpload as any);
         formData.append('query', 'TruthLens Sandbox Forensic Check');
+        formData.append('claim', 'TruthLens Sandbox Forensic Check');
 
         let response = await fetch('https://checkhoaks.app.n8n.cloud/webhook/fact-check', {
           method: 'POST',

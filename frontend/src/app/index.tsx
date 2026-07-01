@@ -235,14 +235,6 @@ export default function WelcomeScreen() {
           styles.textContainer,
           { opacity: textFadeAnim, transform: [{ translateY: textSlideAnim }] },
         ]}>
-          {/* Pill accent */}
-          <View style={[styles.slidePill, { backgroundColor: 'rgba(0,202,146,0.12)' }]}>
-            <View style={styles.slidePillDot} />
-            <Text style={styles.slidePillText}>
-              {displayedIndex + 1} / {SLIDES.length}
-            </Text>
-          </View>
-
           <Text style={[styles.cardTitle, { color: theme.text }]}>
             {currentSlide.title}
           </Text>
@@ -399,14 +391,18 @@ const styles = StyleSheet.create({
 
   // Bottom card
   bottomCard: {
-    borderWidth: 1,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderBottomWidth: 0,
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     paddingHorizontal: Spacing.four,
     paddingTop: Spacing.four,
     alignItems: 'center',
+    justifyContent: 'center',
     width: '100%',
-    minHeight: CARD_MIN_HEIGHT,
+    flex: 1,
     gap: Spacing.three,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },
@@ -428,28 +424,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.one,
     minHeight: 100,
   },
-  slidePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-    marginBottom: 2,
-  },
-  slidePillDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#00ca92',
-  },
-  slidePillText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#00ca92',
-    fontFamily: 'Be Vietnam Pro',
-    letterSpacing: 0.5,
-  },
+
   cardTitle: {
     fontSize: 20,
     fontWeight: '800',
