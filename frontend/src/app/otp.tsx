@@ -119,7 +119,13 @@ export default function OtpScreen() {
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
         {/* Minimal header */}
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
+          <Pressable onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace('/register');
+            }
+          }} style={styles.backButton}>
             <Ionicons
               name="arrow-back"
               size={24}

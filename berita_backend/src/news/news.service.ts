@@ -3,6 +3,9 @@ import { HttpService } from '@nestjs/axios';
 import { PrismaService } from '../prisma/prisma.service';
 import { BookmarkNewsDto } from './dto/bookmark-news.dto';
 import { firstValueFrom } from 'rxjs';
+import * as fs from 'fs';
+import * as path from 'path';
+import { ReportStatus } from '@prisma/client';
 
 export interface CnnNewsItem {
   title: string;
@@ -124,5 +127,87 @@ export class NewsService {
     });
 
     return { message: 'Bookmark removed successfully' };
+  }
+
+  async createHoaxReport(data: {
+    category: string;
+    url: string;
+    notes?: string;
+    screenshot?: any;
+    reporterId?: number;
+  }) {
+    let imagePath: string | null = null;
+    if (data.screenshot) {
+      const uploadsDir = path.resolve(process.cwd(), 'uploads');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+
+      const fileExt = data.screenshot.originalname.split('.').pop() || 'jpg';
+      const fileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}.${fileExt}`;
+      const filePath = path.join(uploadsDir, fileName);
+
+      fs.writeFileSync(filePath, data.screenshot.buffer);
+      imagePath = `/uploads/${fileName}`;
+    }
+
+    const report = await this.prisma.hoaxReport.create({
+      data: {
+        category: data.category,
+        url: data.url,
+        notes: data.notes || null,
+        imagePath,
+        reporterId: data.reporterId || null,
+        status: 'PENDING',
+      },
+    });
+
+    return {
+      message: 'Hoax report submitted successfully',
+      report,
+    };
+  }
+
+  async getHoaxReports(status?: ReportStatus) {
+    return this.prisma.hoaxReport.findMany({
+      where: status ? { status } : {},
+      include: {
+        reporter: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+          },
+        },
+        reviewedBy: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+
+  async reviewHoaxReport(reportId: number, adminId: number, status: ReportStatus) {
+    const report = await this.prisma.hoaxReport.findUnique({
+      where: { id: reportId },
+    });
+
+    if (!report) {
+      throw new HttpException('Report not found', HttpStatus.NOT_FOUND);
+    }
+
+    return this.prisma.hoaxReport.update({
+      where: { id: reportId },
+      data: {
+        status,
+        reviewedById: adminId,
+      },
+    });
   }
 }

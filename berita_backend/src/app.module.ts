@@ -6,6 +6,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { NewsModule } from './news/news.module';
+import { AiChatModule } from './ai-chat/ai-chat.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { NewsModule } from './news/news.module';
     AuthModule,
     UserModule,
     NewsModule,
+    AiChatModule,
   ],
   providers: [
     {

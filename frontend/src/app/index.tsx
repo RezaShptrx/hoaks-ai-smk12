@@ -9,6 +9,7 @@ import {
   ScrollView,
   Dimensions,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,6 +28,7 @@ export default function WelcomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isInitializing, setIsInitializing] = useState(true);
   
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -35,14 +37,26 @@ export default function WelcomeScreen() {
   const slideAnim = useRef(new Animated.Value(20)).current;
 
   useEffect(() => {
-    if (apiClient.getToken()) {
-      router.replace('/home');
-      return;
-    }
-    Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
-    ]).start();
+    const checkSession = async () => {
+      try {
+        const session = await apiClient.initSession();
+        if (session && session.token) {
+          router.replace('/home');
+          return;
+        }
+      } catch (err) {
+        console.warn('Failed to load session:', err);
+      } finally {
+        setIsInitializing(false);
+      }
+
+      Animated.parallel([
+        Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+        Animated.timing(slideAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
+      ]).start();
+    };
+
+    checkSession();
   }, []);
 
   const onboardingSlides = [
@@ -81,6 +95,14 @@ export default function WelcomeScreen() {
       setActiveIndex(index);
     }
   };
+
+  if (isInitializing) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.background, justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#4f378a" />
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>

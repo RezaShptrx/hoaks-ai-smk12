@@ -32,4 +32,43 @@ export class UserService {
       },
     });
   }
+
+  async getProfile(userId: number) {
+    let profile = await this.prisma.userProfile.findUnique({
+      where: { userId },
+    });
+
+    if (!profile) {
+      profile = await this.prisma.userProfile.create({
+        data: { userId },
+      });
+    }
+
+    return profile;
+  }
+
+  async updateProfile(userId: number, dto: any) {
+    return this.prisma.userProfile.upsert({
+      where: { userId },
+      update: {
+        username: dto.username,
+        bio: dto.bio,
+        phoneNumber: dto.phoneNumber,
+        address: dto.address,
+        dob: dto.dob,
+        occupation: dto.occupation,
+        interests: dto.interests,
+      },
+      create: {
+        userId,
+        username: dto.username,
+        bio: dto.bio,
+        phoneNumber: dto.phoneNumber,
+        address: dto.address,
+        dob: dto.dob,
+        occupation: dto.occupation,
+        interests: dto.interests,
+      },
+    });
+  }
 }

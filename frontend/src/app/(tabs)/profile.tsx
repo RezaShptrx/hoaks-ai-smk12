@@ -20,6 +20,7 @@ import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing, MaxContentWidth } from '@/constants/theme';
+import { apiClient } from '@/services/api-client';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -54,6 +55,50 @@ export default function ProfileSetupScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(15)).current;
 
+  // Load profile from backend on mount
+  useEffect(() => {
+    const loadProfileData = async () => {
+      setIsLoading(true);
+      try {
+        const data = await apiClient.getProfile();
+        if (data) {
+          if (data.username) setUsername(data.username);
+          if (data.bio) setBio(data.bio);
+          if (data.phoneNumber) {
+            // Strip country code if match
+            if (data.phoneNumber.startsWith('+62')) {
+              setCountryCode('+62');
+              setPhoneNumber(data.phoneNumber.replace('+62', '').trim());
+            } else if (data.phoneNumber.startsWith('+1')) {
+              setCountryCode('+1');
+              setPhoneNumber(data.phoneNumber.replace('+1', '').trim());
+            } else if (data.phoneNumber.startsWith('+65')) {
+              setCountryCode('+65');
+              setPhoneNumber(data.phoneNumber.replace('+65', '').trim());
+            } else {
+              setPhoneNumber(data.phoneNumber);
+            }
+          }
+          if (data.address) setAddress(data.address);
+          if (data.dob) setDob(data.dob);
+          if (data.occupation) setOccupation(data.occupation);
+          if (data.interests) {
+            setSelectedInterests(data.interests.split(',').filter(Boolean));
+          }
+        }
+      } catch (err) {
+        console.warn('[Profile] Failed to load profile:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    // Only load if token is available
+    if (apiClient.getToken()) {
+      loadProfileData();
+    }
+  }, []);
+
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
@@ -69,22 +114,37 @@ export default function ProfileSetupScreen() {
     }
   };
 
-  const handleNextStep = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      fadeAnim.setValue(0);
-      slideAnim.setValue(15);
-      setStep(2);
-    }, 800);
+  const saveProfileData = async () => {
+    try {
+      const fullPhone = phoneNumber.trim() ? `${countryCode} ${phoneNumber.trim()}` : '';
+      await apiClient.updateProfile({
+        username,
+        bio,
+        phoneNumber: fullPhone,
+        address,
+        dob,
+        occupation,
+        interests: selectedInterests.join(','),
+      });
+    } catch (err) {
+      console.warn('[Profile] Failed to save profile:', err);
+    }
   };
 
-  const handleFinish = () => {
+  const handleNextStep = async () => {
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      setShowModal(true);
-    }, 1000);
+    await saveProfileData();
+    setIsLoading(false);
+    fadeAnim.setValue(0);
+    slideAnim.setValue(15);
+    setStep(2);
+  };
+
+  const handleFinish = async () => {
+    setIsLoading(true);
+    await saveProfileData();
+    setIsLoading(false);
+    setShowModal(true);
   };
 
   const handleGoBack = () => {
@@ -137,7 +197,7 @@ export default function ProfileSetupScreen() {
                     {username ? username : 'Teman Valid'}
                   </Text>
                   <Text style={styles.profileDetailEmail}>
-                    user@valid.com
+                    {apiClient.getUser()?.email || 'user@valid.com'}
                   </Text>
                   {bio ? (
                     <Text style={styles.profileDetailBio}>{bio}</Text>
@@ -221,6 +281,23 @@ export default function ProfileSetupScreen() {
                     </View>
                     <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
                   </Pressable>
+
+                  {apiClient.getUser().role === 'ADMIN' && (
+                    <Pressable
+                      onPress={() => router.push('/admin-moderation')}
+                      style={({ pressed }) => [
+                        styles.menuRow,
+                        pressed && styles.buttonPressed,
+                        { borderColor: theme.backgroundElement, backgroundColor: theme.background === '#ffffff' ? '#ffffff' : '#1b191c' }
+                      ]}
+                    >
+                      <View style={styles.menuRowLeft}>
+                        <Ionicons name="shield-checkmark-outline" size={20} color="#4f378a" />
+                        <Text style={[styles.menuRowText, { color: theme.text }]}>Moderasi Laporan Hoaks</Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
+                    </Pressable>
+                  )}
                 </View>
 
                 {/* Logout / Edit Button */}
@@ -231,12 +308,17 @@ export default function ProfileSetupScreen() {
                   <Text style={[styles.editButtonText, { color: theme.text }]}>Ubah Profil</Text>
                 </Pressable>
 
-                <Link href="/login" asChild>
-                  <Pressable style={styles.logoutButton}>
-                    <Ionicons name="log-out-outline" size={16} color="#ba1a1a" />
-                    <Text style={styles.logoutButtonText}>Keluar dari Akun</Text>
-                  </Pressable>
-                </Link>
+                <Pressable
+                  onPress={() => {
+                    apiClient.setToken(null);
+                    apiClient.setUser(null);
+                    router.replace('/login');
+                  }}
+                  style={styles.logoutButton}
+                >
+                  <Ionicons name="log-out-outline" size={16} color="#ba1a1a" />
+                  <Text style={styles.logoutButtonText}>Keluar dari Akun</Text>
+                </Pressable>
 
               </View>
             </ScrollView>

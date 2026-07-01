@@ -1,12 +1,12 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useColorScheme, LogBox } from 'react-native';
+import { Stack } from 'expo-router';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
 
 LogBox.ignoreAllLogs();
 
-export default function TabLayout() {
+export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   const CustomLightTheme = {
@@ -28,7 +28,22 @@ export default function TabLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? CustomDarkTheme : CustomLightTheme}>
       <AnimatedSplashOverlay />
-      <AppTabs />
+      <Stack screenOptions={{ headerShown: false }}>
+        {/* Welcome index page */}
+        <Stack.Screen name="index" />
+        {/* Auth pages */}
+        <Stack.Screen name="login" />
+        <Stack.Screen name="register" />
+        <Stack.Screen name="otp" />
+        <Stack.Screen name="forgot-password" />
+        {/* Detail/Modal pages */}
+        <Stack.Screen name="news-detail" />
+        <Stack.Screen name="favorite" />
+        <Stack.Screen name="report-hoax" />
+        <Stack.Screen name="guide-detail" />
+        {/* Tab route group */}
+        <Stack.Screen name="(tabs)" />
+      </Stack>
     </ThemeProvider>
   );
 }

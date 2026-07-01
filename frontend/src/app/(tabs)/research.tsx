@@ -53,6 +53,150 @@ const RetroStamp = ({ status, size = 'normal' }: { status: 'VALID' | 'HOAX' | 'R
   );
 };
 
+const classifyCategory = (title: string, content: string): string => {
+  const text = `${title} ${content}`.toLowerCase();
+
+  // 1. Business
+  if (
+    text.includes('saham') || text.includes('ekonomi') || text.includes('bisnis') ||
+    text.includes('keuangan') || text.includes('investasi') || text.includes('bsi') ||
+    text.includes('bank') || text.includes('rupiah') || text.includes('inflasi') ||
+    text.includes('ihsg') || text.includes('ojk') || text.includes('obligasi') ||
+    text.includes('anggaran') || text.includes('fintech') || text.includes('perusahaan') ||
+    text.includes('pasar modal') || text.includes('bumn') || text.includes('bunga bank') ||
+    text.includes('tarif') || text.includes('pajak') || text.includes('subsidi') ||
+    text.includes('rupiah') || text.includes('transaksi') || text.includes('perdagangan') ||
+    text.includes('emiten') || text.includes('reksadana') || text.includes('investor') ||
+    text.includes('finansial') || text.includes('deflasi') || text.includes('crypto') ||
+    text.includes('kripto') || text.includes('bitcoin') || text.includes('neraca') ||
+    text.includes('fiskal') || text.includes('moneter') || text.includes('pendapatan') ||
+    text.includes('laba') || text.includes('rugi') || text.includes('omzet') ||
+    text.includes('korporasi') || text.includes('startup') || text.includes('kuliner') ||
+    text.includes('umkm') || text.includes('ritel') || text.includes('waralaba') ||
+    text.includes('komoditas') || text.includes('minyak bumi') || text.includes('emas') ||
+    text.includes('cukai') || text.includes('perbankan') || text.includes('utang') ||
+    text.includes('kredit') || text.includes('pinjol') || text.includes('pinjaman online')
+  ) {
+    return 'Business';
+  }
+
+  // 2. Technology
+  if (
+    text.includes('teknologi') || text.includes('gadget') || text.includes('smartphone') ||
+    text.includes('android') || text.includes('ios') || text.includes('aplikasi') ||
+    text.includes('ai ') || text.includes('artificial intelligence') || text.includes('chip') ||
+    text.includes('komputer') || text.includes('internet') || text.includes('hacker') ||
+    text.includes('siber') || text.includes('antariksa') || text.includes('nasa') ||
+    text.includes('software') || text.includes('game') || text.includes('gaming') ||
+    text.includes('robot') || text.includes('inovasi') || text.includes('digital') ||
+    text.includes('science') || text.includes('sains') || text.includes('samsung') ||
+    text.includes('apple') || text.includes('google') || text.includes('microsoft') ||
+    text.includes('chatgpt') || text.includes('metaverse') || text.includes('blockchain') ||
+    text.includes('cyber') || text.includes('malware') || text.includes('ransomware') ||
+    text.includes('hardware') || text.includes('telekomunikasi') || text.includes('jaringan') ||
+    text.includes('5g') || text.includes('starlink') || text.includes('satelit') ||
+    text.includes('coding') || text.includes('programming') || text.includes('programmer') ||
+    text.includes('data science') || text.includes('cloud') || text.includes('server') ||
+    text.includes('semikonduktor') || text.includes('elektronik') || text.includes('luar angkasa') ||
+    text.includes('astronomi') || text.includes('fisika') || text.includes('kimia') ||
+    text.includes('matematika') || text.includes('kloning') || text.includes('dna') ||
+    text.includes('bioteknologi') || text.includes('teleskop')
+  ) {
+    return 'Technology';
+  }
+
+  // 3. Politics
+  if (
+    text.includes('politik') || text.includes('pemilu') || text.includes('pilkada') ||
+    text.includes('dpr') || text.includes('kpu') || text.includes('presiden') ||
+    text.includes('mentri') || text.includes('menteri') || text.includes('koalisi') ||
+    text.includes('partai') || text.includes('kabinet') || text.includes('gubernur') ||
+    text.includes('walikota') || text.includes('bupati') || text.includes('kebijakan') ||
+    text.includes('uu ') || text.includes('undang-undang') || text.includes('kpk') ||
+    text.includes('hukum') || text.includes('sidang') || text.includes('diplomasi') ||
+    text.includes('negara') || text.includes('pemerintah') || text.includes('senat') ||
+    text.includes('demokrasi') || text.includes('oposisi') || text.includes('caleg') ||
+    text.includes('capres') || text.includes('cawapres') || text.includes('koalisi') ||
+    text.includes('parlemen') || text.includes('konstitusi') || text.includes('mk ') ||
+    text.includes('mahkamah') || text.includes('jaksa') || text.includes('hakim') ||
+    text.includes('tni') || text.includes('polri') || text.includes('kapolri') ||
+    text.includes('korupsi') || text.includes('suap') || text.includes('gratifikasi') ||
+    text.includes('demonstrasi') || text.includes('unjuk rasa') || text.includes('birokrasi') ||
+    text.includes('asn') || text.includes('pns') || text.includes('diplomatik') ||
+    text.includes('luar negeri') || text.includes('perdana menteri') || text.includes('dprd') ||
+    text.includes('dpd') || text.includes('gerindra') || text.includes('pdi-p') ||
+    text.includes('golkar') || text.includes('nasdem') || text.includes('pkb') ||
+    text.includes('pks') || text.includes('demokrat') || text.includes('pan') ||
+    text.includes('ppp')
+  ) {
+    return 'Politics';
+  }
+
+  // 4. Sports
+  if (
+    text.includes('olahraga') || text.includes('sepak bola') || text.includes('sepakbola') ||
+    text.includes('liga') || text.includes('klub') || text.includes('pemain') ||
+    text.includes('timnas') || text.includes('pertandingan') || text.includes('juara') ||
+    text.includes('atlet') || text.includes('bulu tangkis') || text.includes('badminton') ||
+    text.includes('motogp') || text.includes('formula 1') || text.includes('f1') ||
+    text.includes('piala dunia') || text.includes('olimpiade') || text.includes('medali') ||
+    text.includes('skor') || text.includes('kemenangan') || text.includes('turnamen') ||
+    text.includes('pelatih') || text.includes('pssi') || text.includes('fifa') ||
+    text.includes('gelar') || text.includes('sirkuit') || text.includes('balapan') ||
+    text.includes('klasemen') || text.includes('stadion') || text.includes('transfer') ||
+    text.includes('kontrak') || text.includes('semifinal') || text.includes('final') ||
+    text.includes('perempat final') || text.includes('bola basket') || text.includes('nba') ||
+    text.includes('tenis') || text.includes('tinju') || text.includes('ufc') ||
+    text.includes('mma') || text.includes('bulutangkis') || text.includes('atletik') ||
+    text.includes('maraton') || text.includes('renang')
+  ) {
+    return 'Sports';
+  }
+
+  // 5. Health
+  if (
+    text.includes('kesehatan') || text.includes('sehat') || text.includes('penyakit') ||
+    text.includes('dokter') || text.includes('rumah sakit') || text.includes('klinis') ||
+    text.includes('obat') || text.includes('vaksin') || text.includes('virus') ||
+    text.includes('pandemi') || text.includes('gejala') || text.includes('stres') ||
+    text.includes('diet') || text.includes('nutrisi') || text.includes('bpjs') ||
+    text.includes('kanker') || text.includes('jantung') || text.includes('medis') ||
+    text.includes('gizi') || text.includes('terapi') || text.includes('mental') ||
+    text.includes('klinik') || text.includes('puskesmas') || text.includes('farmasi') ||
+    text.includes('apotek') || text.includes('idi') || text.includes('kemenkes') ||
+    text.includes('who') || text.includes('wabah') || text.includes('kolesterol') ||
+    text.includes('diabetes') || text.includes('tensi') || text.includes('darah tinggi') ||
+    text.includes('imunitas') || text.includes('suplemen') || text.includes('vitamin') ||
+    text.includes('psikolog') || text.includes('depresi') || text.includes('terapis') ||
+    text.includes('obesitas') || text.includes('gaya hidup sehat') || text.includes('olahraga sehat') ||
+    text.includes('nutrisional')
+  ) {
+    return 'Health';
+  }
+
+  // 6. Entertainment
+  if (
+    text.includes('hiburan') || text.includes('film') || text.includes('musik') ||
+    text.includes('lagu') || text.includes('konser') || text.includes('artis') ||
+    text.includes('selebriti') || text.includes('aktor') || text.includes('aktris') ||
+    text.includes('cinema') || text.includes('bioskop') || text.includes('sutradara') ||
+    text.includes('drama') || text.includes('k-pop') || text.includes('kpop') ||
+    text.includes('anime') || text.includes('manga') || text.includes('showbiz') ||
+    text.includes('festival') || text.includes('netflix') || text.includes('streaming') ||
+    text.includes('singel') || text.includes('album') || text.includes('band') ||
+    text.includes('penyanyi') || text.includes('selebgram') || text.includes('influencer') ||
+    text.includes('gosip') || text.includes('infotainment') || text.includes('komedi') ||
+    text.includes('stand-up') || text.includes('tontonan') || text.includes('teater') ||
+    text.includes('fashion') || text.includes('model') || text.includes('glamor') ||
+    text.includes('karpet merah')
+  ) {
+    return 'Entertainment';
+  }
+
+  const demoCats = ['Politics', 'Technology', 'Health', 'Sports', 'Entertainment', 'Business'];
+  return demoCats[title.length % demoCats.length];
+};
+
 export default function ResearchScreen() {
   const theme = useTheme();
   const router = useRouter();
@@ -136,9 +280,8 @@ export default function ResearchScreen() {
         // Fetch large batch so all articles available for client-side filter+pagination
         const result = await apiClient.fetchNews(1, 100);
         if (result && result.data && result.data.length > 0) {
-          const demoCats = ['Politics', 'Technology', 'Health', 'Sports', 'Entertainment', 'Business'];
           const mapped: NewsItem[] = result.data.map((item: any, idx: number) => {
-            const category = demoCats[idx % demoCats.length];
+            const category = classifyCategory(item.title || '', item.contentSnippet || '');
             const source = item.sourceName || 'CNN';
 
             let status: 'VALID' | 'HOAX' | 'RAGU-RAGU' = 'VALID';

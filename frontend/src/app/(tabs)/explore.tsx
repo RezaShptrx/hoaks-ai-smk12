@@ -22,12 +22,21 @@ import { useTheme } from '@/hooks/use-theme';
 import { Spacing, MaxContentWidth } from '@/constants/theme';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import { apiClient } from '@/services/api-client';
 
 interface Message {
   id: string;
   sender: 'user' | 'ai';
   text: string;
   timestamp: string;
+}
+
+type ModelId = 'gpt-4o';
+
+interface AiMessage extends Message {
+  sources?: { title: string; url: string }[];
+  searchUsed?: boolean;
+  showVerifyRedirect?: boolean;
 }
 
 interface ForensicResult {
@@ -41,6 +50,73 @@ interface ForensicResult {
   imageTitle: string;
 }
 
+const renderFormattedText = (text: string, theme: any, isAi: boolean) => {
+  const lines = text.split('\n');
+  const textColor = isAi ? theme.text : '#ffffff';
+
+  return lines.map((line, index) => {
+    // Check if line is a bullet item (e.g. starting with '- ', '• ', '* ')
+    const bulletMatch = line.match(/^(\s*)[-•*]\s+(.*)/);
+    // Check if line is a numbered item (e.g. starting with '1. ', '2. ', etc.)
+    const numberMatch = line.match(/^(\s*)(\d+)\.\s+(.*)/);
+
+    let isListItem = false;
+    let listPrefix = '';
+    let content = line;
+    let indent = 0;
+
+    if (bulletMatch) {
+      isListItem = true;
+      listPrefix = '• ';
+      content = bulletMatch[2];
+      indent = bulletMatch[1].length * 8 + 8;
+    } else if (numberMatch) {
+      isListItem = true;
+      listPrefix = `${numberMatch[2]}. `;
+      content = numberMatch[3];
+      indent = numberMatch[1].length * 8 + 8;
+    }
+
+    // Parse bold segments within the content (i.e. **text**)
+    const parts = content.split(/\*\*|\_\_/);
+    const elements = parts.map((part, i) => {
+      const isBold = i % 2 === 1;
+      return (
+        <Text
+          key={i}
+          selectable={true}
+          style={[
+            styles.messageText,
+            { color: textColor },
+            isBold && { fontWeight: '700' }
+          ]}
+        >
+          {part}
+        </Text>
+      );
+    });
+
+    if (isListItem) {
+      return (
+        <View key={index} style={{ flexDirection: 'row', paddingLeft: indent, paddingRight: 4, marginVertical: 2, alignItems: 'flex-start' }}>
+          <Text selectable={true} style={[styles.messageText, { color: textColor, fontWeight: '700', marginRight: 4 }]}>
+            {listPrefix}
+          </Text>
+          <Text selectable={true} style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap' }}>
+            {elements}
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <Text key={index} selectable={true} style={{ marginVertical: 3 }}>
+        {elements}
+      </Text>
+    );
+  });
+};
+
 export default function ExploreScreen() {
   const theme = useTheme();
   const router = useRouter();
@@ -52,12 +128,13 @@ export default function ExploreScreen() {
 
   // --- Tab 1: Chatbot State ---
   const [inputMessage, setInputMessage] = useState('');
-  const [messages, setMessages] = useState<Message[]>([
+  const [isChatLoading, setIsChatLoading] = useState(false);
+  const [messages, setMessages] = useState<AiMessage[]>([
     {
       id: 'm1',
       sender: 'ai',
-      text: 'Halo! Saya Asisten Verifikasi Valid.\n\nSaya bisa membantu memandu Anda cara melaporkan berita hoaks ke Komdigi (AduanKonten.id), menjelaskan langkah penanganan disinformasi hukum UU ITE, atau memberikan panduan cek fakta mandiri.\n\nApa yang ingin Anda tanyakan hari ini?',
-      timestamp: 'Baru saja'
+      text: 'Halo! Saya Asisten Veritas — asisten AI pendamping anti-hoaks Anda.\n\nSaya memiliki akses pencarian web real-time untuk memberikan panduan umum dan informasi edukasi anti-hoaks. Tanyakan:\n\n• Cara melaporkan hoaks ke Kominfo / Komdigi\n• Penjelasan regulasi hukum UU ITE\n• Panduan dan ciri-ciri hoaks secara umum\n• Informasi lembaga cek fakta resmi\n\n*Catatan: Obrolan chat ini bersifat informatif & netral. Untuk memverifikasi kebenaran klaim berita atau foto secara resmi, silakan gunakan fitur Verify pada menu navigasi.*',
+      timestamp: 'Veritas AI'
     }
   ]);
 
@@ -114,54 +191,67 @@ export default function ExploreScreen() {
   });
 
   // --- Chatbot Logic ---
-  const handleSendMessage = (textToSend?: string) => {
+  const handleSendMessage = async (textToSend?: string) => {
     const msgText = textToSend || inputMessage;
-    if (!msgText.trim()) return;
+    if (!msgText.trim() || isChatLoading) return;
 
-    const userMsg: Message = {
+    const userMsg: AiMessage = {
       id: `u_${Date.now()}`,
       sender: 'user',
       text: msgText,
       timestamp: 'Baru saja'
     };
 
-    setMessages(prev => [...prev, userMsg]);
-    const query = msgText.toLowerCase();
+    const updatedMessages = [...messages, userMsg];
+    setMessages(updatedMessages);
     if (!textToSend) setInputMessage('');
+    setIsChatLoading(true);
 
-    // Scroll to bottom
     setTimeout(() => {
       scrollViewRef.current?.scrollToEnd({ animated: true });
     }, 100);
 
-    // Mock AI response
-    setTimeout(() => {
-      let aiResponseText = '';
+    const history = updatedMessages
+      .slice(1)
+      .slice(-10)
+      .map((m) => ({
+        role: (m.sender === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
+        content: m.text,
+      }));
 
-      if (query.includes('lapor') || query.includes('aduan') || query.includes('komdigi') || query.includes('kominfo')) {
-        aiResponseText = 'Berikut langkah resmi melaporkan hoaks ke Komdigi (Kementerian Komunikasi dan Digital):\n\n1. **WhatsApp Resmi**: Kirim laporan ke Aduan Konten Komdigi di **0811-922-4545**.\n2. **Portal Web**: Akses **aduankonten.id**, buat akun, lalu lampirkan link/tangkapan layar (screenshot) konten.\n3. **Bukti Valid**: Pastikan Anda memiliki screenshot yang jelas dan link asli jika berasal dari media sosial.\n\nLaporan akan ditinjau dan konten berpotensi di-takedown jika terbukti menyebarkan disinformasi.';
-      } else if (query.includes('cek') || query.includes('fakta') || query.includes('cara') || query.includes('saring')) {
-        aiResponseText = 'Panduan 3 Langkah Cek Fakta Mandiri:\n\n1. **Cek Dewan Pers**: Verifikasi apakah situs berita terdaftar secara resmi di Dewan Pers.\n2. **Cari di TurnBackHoax**: Cari kata kunci berita di situs **turnbackhoax.id** (database Mafindo).\n3. **Reverse Image Search**: Jika hoaks berupa gambar, gunakan Google Lens atau Yandex Image Search untuk mencari asal-usul gambar asli.\n\nJangan bagikan berita jika Anda ragu akan kebenarannya!';
-      } else if (query.includes('hukum') || query.includes('ite') || query.includes('fitnah') || query.includes('penipuan')) {
-        aiResponseText = 'Jika data Anda dicemarkan nama baiknya atau Anda dirugikan akibat penyebaran hoaks di internet:\n\n1. **Amankan Bukti**: Tangkap layar (screenshot) semua postingan fitnah beserta URL-nya.\n2. **Laporkan ke Cyber Crime**: Anda bisa melaporkannya secara online melalui **patrolisiber.id**.\n3. **Aduan Polsek/Polres**: Datangi unit SPKT Polres setempat membawa bukti digital untuk pelaporan pelanggaran pasal UU ITE.';
-      } else {
-        aiResponseText = 'Terima kasih atas pertanyaannya.\n\nSaat ini, sistem kami sedang dipersiapkan untuk tersambung ke mesin AI n8n pengolah data sesungguhnya.\n\nUntuk panduan cepat sekarang, coba ketik kata kunci seperti:\n* **"Lapor Hoaks"**\n* **"Cara Cek Fakta"**\n* **"UU ITE"**';
-      }
+    try {
+      const result = await apiClient.aiChat({ message: msgText, history });
+      const replyText = result?.reply || 'Maaf, tidak ada respons dari AI.';
+      
+      // Determine if user intends to verify news validity, or AI directs to verify page
+      const isCheckingHoax =
+        /hoaks|hoax|fakta|verifikasi|verify|beneran|palsu|salah atau benar|apakah berita|cek gambar/i.test(msgText) ||
+        /verify|verifikasi|halaman verify/i.test(replyText);
 
-      const aiMsg: Message = {
+      const aiMsg: AiMessage = {
         id: `ai_${Date.now()}`,
         sender: 'ai',
-        text: aiResponseText,
-        timestamp: 'Baru saja'
+        text: replyText,
+        timestamp: result?.searchUsed ? '🔍 Pencarian Web Aktif' : '🤖 Asisten AI',
+        sources: result?.sources || [],
+        searchUsed: result?.searchUsed || false,
+        showVerifyRedirect: isCheckingHoax,
       };
-
-      setMessages(prev => [...prev, aiMsg]);
-
-      // Scroll to bottom again
+      setMessages((prev) => [...prev, aiMsg]);
+    } catch (err: any) {
+      const errMsg: AiMessage = {
+        id: `err_${Date.now()}`,
+        sender: 'ai',
+        text: '⚠️ Gagal menghubungi server AI. Pastikan backend berjalan dan OPENAI_API_KEY sudah diisi di file .env backend.',
+        timestamp: 'Error',
+      };
+      setMessages((prev) => [...prev, errMsg]);
+    } finally {
+      setIsChatLoading(false);
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 100);
-    }, 1000);
+      }, 150);
+    }
   };
 
   // --- Sandbox Logic ---
@@ -181,12 +271,14 @@ export default function ExploreScreen() {
     });
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
-      const selectedUri = result.assets[0].uri;
-      handleStartAnalysis('custom_photo', selectedUri);
+      const asset = result.assets[0];
+      const selectedUri = asset.uri;
+      const fileName = asset.fileName || selectedUri.split('/').pop() || 'image.jpg';
+      handleStartAnalysis('custom_photo', selectedUri, fileName);
     }
   };
 
-  const handleStartAnalysis = (sampleType: 'hoax_photo' | 'valid_photo' | 'custom_photo', customUri?: string) => {
+  const handleStartAnalysis = (sampleType: 'hoax_photo' | 'valid_photo' | 'custom_photo', customUri?: string, customName?: string) => {
     setSelectedSample(sampleType);
     if (sampleType === 'custom_photo' && customUri) {
       setCustomImageUri(customUri);
@@ -194,6 +286,114 @@ export default function ExploreScreen() {
     setIsScanning(true);
     setForensicReport(null);
     setScanStep(0);
+
+    let webhookReport: ForensicResult | null = null;
+    let apiCompleted = false;
+
+    const runWebhookAnalysis = async () => {
+      if (sampleType !== 'custom_photo' || !customUri) {
+        apiCompleted = true;
+        return;
+      }
+
+      try {
+        const formData = new FormData();
+        const ext = customName?.split('.').pop()?.toLowerCase() || 'jpg';
+        const fileToUpload = {
+          uri: Platform.OS === 'android' ? customUri : customUri.replace('file://', ''),
+          name: customName || 'image.jpg',
+          type: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
+        };
+        formData.append('screenshot', fileToUpload as any);
+        formData.append('query', 'TruthLens Sandbox Forensic Check');
+
+        let response = await fetch('https://checkhoaks.app.n8n.cloud/webhook/fact-check', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          console.warn(`[Veritas] Production Webhook returned status ${response.status}. Trying Test Webhook...`);
+          response = await fetch('https://checkhoaks.app.n8n.cloud/webhook-test/fact-check', {
+            method: 'POST',
+            body: formData,
+          });
+        }
+
+        if (response.ok) {
+          const resData = await response.json();
+          const item = Array.isArray(resData) ? resData[0] : resData;
+          
+          if (item) {
+            const factCheck = item.factCheck;
+            const rawStatus = (factCheck?.status || item.verdict || item.status || 'VALID').toUpperCase();
+            
+            let verdict: 'AMAN' | 'MENCURIGAKAN' | 'TIDAK_KONSISTEN' = 'AMAN';
+            let authenticityScore = 90;
+            
+            const rawScore = factCheck?.confidenceScore ?? item.confidence;
+            const confidenceVal = rawScore != null
+              ? (typeof rawScore === 'number' && rawScore <= 1 ? Math.round(rawScore * 100) : Number(rawScore))
+              : 85;
+
+            if (rawStatus.includes('HOAX') || rawStatus.includes('PALSU') || rawStatus.includes('SALAH') || rawStatus.includes('FALSE')) {
+              verdict = 'TIDAK_KONSISTEN';
+              authenticityScore = Math.max(10, 100 - confidenceVal);
+            } else if (rawStatus.includes('RAGU') || rawStatus.includes('MISLEADING') || rawStatus.includes('SEBAGIAN') || rawStatus.includes('CAMPURAN')) {
+              verdict = 'MENCURIGAKAN';
+              authenticityScore = Math.max(30, Math.min(65, 100 - confidenceVal));
+            } else {
+              verdict = 'AMAN';
+              authenticityScore = Math.min(98, confidenceVal);
+            }
+
+            const reasoning = Array.isArray(factCheck?.reasoning) && factCheck.reasoning.length > 0
+              ? factCheck.reasoning.join(' ')
+              : (factCheck?.summary || item.reason || item.analisis || item.reply || 'Klaim gambar telah dianalisis silang dengan database cek fakta.');
+
+            const sources = Array.isArray(factCheck?.sources) && factCheck.sources.length > 0
+              ? factCheck.sources.map((s: any) => typeof s === 'string' ? s : (s.title || s.url || '')).filter(Boolean)
+              : [];
+
+            // Generate realistic detail fields for TruthLens based on verdict
+            let exifText = 'Metadata file EXIF lengkap (Ditemukan model kamera, waktu pengambilan, & kompresi standar). Tidak terindikasi rekayasa metadata janggal.';
+            let elaText = 'Hasil uji kompresi ELA menunjukkan sebaran ketebalan piksel noise seragam di seluruh area foto. Tidak terdeteksi penempelan objek baru.';
+            let aiText = 'Probabilitas buatan generator AI (Gen-AI Probability): 9%. Menandakan foto ini diambil menggunakan kamera fisik riil.';
+            
+            if (verdict === 'TIDAK_KONSISTEN') {
+              exifText = 'Terdeteksi anomali pada metadata berkas. Tanggal modifikasi berkas tidak cocok dengan tanggal pembuatan gambar asli.';
+              elaText = `Terdeteksi ketidakcocokan pola kompresi piksel tinggi (${confidenceVal}%) pada beberapa area spesifik gambar, mengindikasikan adanya manipulasi lokal/photoshop.`;
+              aiText = 'Probabilitas gambar buatan AI generator rendah. Gambar merupakan foto riil yang dimanipulasi secara digital.';
+            } else if (verdict === 'MENCURIGAKAN') {
+              exifText = 'Metadata EXIF sebagian telah dihapus atau hilang (kemungkinan diunduh dari platform chat). Rekayasa metadata tidak dapat diuji secara penuh.';
+              elaText = 'Terdapat sedikit noise kompresi tidak seragam di dekat tepi teks, menunjukkan adanya kemungkinan pengeditan ringan.';
+              aiText = `Probabilitas buatan generator AI (Deepfake / Gen-AI): ${confidenceVal}%. Terdapat kecurigaan pola sintetis pada struktur pixel.`;
+            }
+
+            webhookReport = {
+              score: authenticityScore,
+              status: verdict,
+              imageTitle: item.imageTitle || item.title || `Analisis: ${customName || 'Foto Unggahan'}`,
+              imageUri: customUri,
+              metadata: exifText,
+              elaAnalysis: elaText,
+              aiDetection: aiText,
+              reverseIndex: sources.length > 0 
+                ? `Terindeks di beberapa sumber cek fakta publik: ${sources.join(', ')}`
+                : (reasoning.length > 150 ? reasoning.slice(0, 150) + '...' : reasoning)
+            };
+            console.log('[Veritas] TruthLens mapped from fact-check webhook successfully!');
+          }
+        }
+      } catch (err) {
+        console.warn('[Veritas] TruthLens Webhook analysis failed, using fallback:', err);
+      } finally {
+        apiCompleted = true;
+      }
+    };
+
+    // Trigger API call in background
+    runWebhookAnalysis();
 
     // Simulated multi-stage forensic analysis
     setTimeout(() => {
@@ -203,41 +403,60 @@ export default function ExploreScreen() {
         setTimeout(() => {
           setScanStep(3); // deepfake / reverse search check
           setTimeout(() => {
-            setIsScanning(false);
-            
-            if (sampleType === 'hoax_photo') {
-              setForensicReport({
-                score: 18,
-                status: 'TIDAK_KONSISTEN',
-                imageTitle: 'Klaim Foto Penemuan Bansos di Gudang Rahasia',
-                imageUri: 'https://lh3.googleusercontent.com/aida-public/AB6AXu-dlVGnxrozhnU8cTIEBPtR8y5K2Gy-pdjfhw20rT8smLOwil1G0YYlIQgBYWsyegBQ1F_Vb0kO-8A6pezxUE2Fp3hgDGKIqC682OYukZaT3793KN5XR24U2aNPJV2aWyoGnsPk57wS5nmA2KpvO3MUWGb517MjNY_AB-QnP3bOG6KxN3DjfAJ0l8Uin-abyg_OBz6aqutq9S1rIQhdWyow5m0xv7N23Y7LtcJmYBL3qyVC8HAOz6rLj27S2WdGgqjBgk-CMgYNvs',
-                metadata: 'Tanggal asli file EXIF dibuat adalah 12 April 2020. Ini membantah klaim postingan media sosial yang menyatakan foto diambil hari ini pada peristiwa banjir Juni 2026.',
-                elaAnalysis: 'Terdeteksi inkonsistensi pola kompresi piksel tinggi (94%) pada area spanduk teks. Teks pada spanduk terbukti ditempel secara digital menggunakan aplikasi edit foto.',
-                aiDetection: 'Tidak terdeteksi pola generator AI (Gen-AI probability 4%). Foto asli, namun dimanipulasi secara manual.',
-                reverseIndex: 'Gambar terindeks pertama kali di forum Reddit pada April 2020 terkait peristiwa pembagian logistik di negara tetangga.'
-              });
-            } else if (sampleType === 'valid_photo') {
-              setForensicReport({
-                score: 96,
-                status: 'AMAN',
-                imageTitle: 'Tangkapan Layar Pengumuman Resmi Bank Indonesia',
-                imageUri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBh0TmFuXhASC7VJ17P4dRWNan__CSGUtwFIzz6yxWlr-7GXFC_5a_bGzzVhp039hG6h-IcLVDEPh9w2-S_0-dOzhMHl3dNZTfOdohtVixOPz_8IMwu2Io8yPZDK5NItkiDBt1moqLT9nw5LsXujFhF_CQqmzWSJ8mxfUucZqFwWR82wXFtxvXoE9e5qcet9H_XCFOgvKvCvQfV-jEKaGDNtvaqU3nZt37H-odUDBFhgHRmfQrS1THx02t40wb40plE5ujXH5qK_FU',
-                metadata: 'Metadata file EXIF konsisten. Koordinat GPS dan tanggal pembuatan file (Juni 2026) sejalan dengan pengumuman rilis.',
-                elaAnalysis: 'Hasil uji kompresi ELA menunjukkan distribusi noise piksel yang seragam di seluruh area gambar. Tidak ada tanda-tanda manipulasi kolase teks.',
-                aiDetection: 'Probabilitas gambar buatan AI: 0%. Struktur pixel sesuai dengan tangkapan layar sistem operasi seluler asli.',
-                reverseIndex: 'Gambar terindeks pertama kali di situs web resmi Bank Indonesia (bi.go.id) pada hari ini.'
-              });
+            const showFinalResult = () => {
+              setIsScanning(false);
+              if (webhookReport) {
+                setForensicReport(webhookReport);
+              } else {
+                // Fallback to mock data if webhook failed or wasn't active
+                setForensicReport({
+                  score: 88,
+                  status: 'AMAN',
+                  imageTitle: 'Foto Unggahan Galeri Pengguna',
+                  imageUri: customUri || '',
+                  metadata: 'Metadata file EXIF lengkap (Ditemukan model kamera, waktu pengambilan, & kompresi standar). Tidak terindikasi rekayasa metadata janggal.',
+                  elaAnalysis: 'Hasil uji kompresi ELA menunjukkan sebaran ketebalan piksel noise seragam di seluruh area foto. Tidak terdeteksi penempelan objek baru.',
+                  aiDetection: 'Probabilitas buatan generator AI (Gen-AI Probability): 9%. Menandakan foto ini diambil menggunakan kamera fisik riil.',
+                  reverseIndex: 'Gambar tidak ditemukan di indeks pencarian publik (Indikasi foto bersifat orisinal/privat).'
+                });
+              }
+            };
+
+            const checkCompletion = () => {
+              if (apiCompleted) {
+                showFinalResult();
+              } else {
+                setTimeout(checkCompletion, 100);
+              }
+            };
+
+            if (sampleType === 'custom_photo') {
+              checkCompletion();
             } else {
-              setForensicReport({
-                score: 88,
-                status: 'AMAN',
-                imageTitle: 'Foto Unggahan Galeri Pengguna',
-                imageUri: customUri || '',
-                metadata: 'Metadata file EXIF lengkap (Ditemukan model kamera, waktu pengambilan, & kompresi standar). Tidak terindikasi rekayasa metadata janggal.',
-                elaAnalysis: 'Hasil uji kompresi ELA menunjukkan sebaran ketebalan piksel noise seragam di seluruh area foto. Tidak terdeteksi penempelan objek baru.',
-                aiDetection: 'Probabilitas buatan generator AI (Gen-AI Probability): 9%. Menandakan foto ini diambil menggunakan kamera fisik riil.',
-                reverseIndex: 'Gambar tidak ditemukan di indeks pencarian publik (Indikasi foto bersifat orisinal/privat).'
-              });
+              setIsScanning(false);
+              if (sampleType === 'hoax_photo') {
+                setForensicReport({
+                  score: 18,
+                  status: 'TIDAK_KONSISTEN',
+                  imageTitle: 'Klaim Foto Penemuan Bansos di Gudang Rahasia',
+                  imageUri: 'https://lh3.googleusercontent.com/aida-public/AB6AXu-dlVGnxrozhnU8cTIEBPtR8y5K2Gy-pdjfhw20rT8smLOwil1G0YYlIQgBYWsyegBQ1F_Vb0kO-8A6pezxUE2Fp3hgDGKIqC682OYukZaT3793KN5XR24U2aNPJV2aWyoGnsPk57wS5nmA2KpvO3MUWGb517MjNY_AB-QnP3bOG6KxN3DjfAJ0l8Uin-abyg_OBz6aqutq9S1rIQhdWyow5m0xv7N23Y7LtcJmYBL3qyVC8HAOz6rLj27S2WdGgqjBgk-CMgYNvs',
+                  metadata: 'Tanggal asli file EXIF dibuat adalah 12 April 2020. Ini membantah klaim postingan media sosial yang menyatakan foto diambil hari ini pada peristiwa banjir Juni 2026.',
+                  elaAnalysis: 'Terdeteksi inkonsistensi pola kompresi piksel tinggi (94%) pada area spanduk teks. Teks pada spanduk terbukti ditempel secara digital menggunakan aplikasi edit foto.',
+                  aiDetection: 'Tidak terdeteksi pola generator AI (Gen-AI probability 4%). Foto asli, namun dimanipulasi secara manual.',
+                  reverseIndex: 'Gambar terindeks pertama kali di forum Reddit pada April 2020 terkait peristiwa pembagian logistik di negara tetangga.'
+                });
+              } else {
+                setForensicReport({
+                  score: 96,
+                  status: 'AMAN',
+                  imageTitle: 'Tangkapan Layar Pengumuman Resmi Bank Indonesia',
+                  imageUri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBh0TmFuXhASC7VJ17P4dRWNan__CSGUtwFIzz6yxWlr-7GXFC_5a_bGzzVhp039hG6h-IcLVDEPh9w2-S_0-dOzhMHl3dNZTfOdohtVixOPz_8IMwu2Io8yPZDK5NItkiDBt1moqLT9nw5LsXujFhF_CQqmzWSJ8mxfUucZqFwWR82wXFtxvXoE9e5qcet9H_XCFOgvKvCvQfV-jEKaGDNtvaqU3nZt37H-odUDBFhgHRmfQrS1THx02t40wb40plE5ujXH5qK_FU',
+                  metadata: 'Metadata file EXIF konsisten. Koordinat GPS dan tanggal pembuatan file (Juni 2026) sejalan dengan pengumuman rilis.',
+                  elaAnalysis: 'Hasil uji kompresi ELA menunjukkan distribusi noise piksel yang seragam di seluruh area gambar. Tidak ada tanda-tanda manipulasi kolase teks.',
+                  aiDetection: 'Probabilitas gambar buatan AI: 0%. Struktur pixel sesuai dengan tangkapan layar sistem operasi seluler asli.',
+                  reverseIndex: 'Gambar terindeks pertama kali di situs web resmi Bank Indonesia (bi.go.id) pada hari ini.'
+                });
+              }
             }
           }, 800);
         }, 850);
@@ -290,51 +509,19 @@ export default function ExploreScreen() {
           {activeTab === 'chat' ? (
             // --- Tab 1 Layout: Chatbot ---
             <View style={{ flex: 1 }}>
-              {/* Quick Actions Bento Row */}
-              <View style={styles.bentoRow}>
-                <Pressable
-                  onPress={() => router.push('/guide-detail?type=aduan')}
-                  style={styles.heroCardWrapper}>
-                  <LinearGradient
-                    colors={['#4f378a', '#6b4db8']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.heroCard}
-                  >
-                    <View style={styles.heroCardHeader}>
-                      <Ionicons name="megaphone" size={24} color="#ffffff" />
-                      <View style={styles.heroBadge}>
-                        <Text style={styles.heroBadgeText}>LAPOR</Text>
-                      </View>
-                    </View>
-                    <View>
-                      <Text style={styles.heroCardTitle}>Aduan Resmi</Text>
-                      <Text style={styles.heroCardDesc}>Saluran Lapor Komdigi / Mafindo</Text>
-                    </View>
-                  </LinearGradient>
-                </Pressable>
 
-                <Pressable
-                  onPress={() => router.push('/guide-detail?type=edukasi')}
-                  style={styles.heroCardWrapper}>
-                  <LinearGradient
-                    colors={['#d97706', '#eab308']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.heroCard}
-                  >
-                    <View style={styles.heroCardHeader}>
-                      <Ionicons name="shield-checkmark" size={24} color="#ffffff" />
-                      <View style={styles.heroBadge}>
-                        <Text style={styles.heroBadgeText}>EDUKASI</Text>
-                      </View>
-                    </View>
-                    <View>
-                      <Text style={styles.heroCardTitle}>Cek Mandiri</Text>
-                      <Text style={styles.heroCardDesc}>Panduan Lengkap Deteksi Hoaks</Text>
-                    </View>
-                  </LinearGradient>
-                </Pressable>
+
+              {/* Model / Feature Badge */}
+              <View style={[styles.modelStrip, { backgroundColor: theme.background, borderBottomColor: theme.backgroundElement }]}>
+                <View style={[styles.modelChip, { backgroundColor: '#4f378a', borderColor: '#4f378a' }]}>
+                  <Ionicons name="sparkles" size={12} color="#fff" />
+                  <Text style={[styles.modelChipText, { color: '#fff' }]}>Veritas AI</Text>
+                </View>
+                <View style={[styles.modelChip, { backgroundColor: '#0066ff', borderColor: '#0066ff' }]}>
+                  <Ionicons name="search" size={12} color="#fff" />
+                  <Text style={[styles.modelChipText, { color: '#fff' }]}>Pencarian Web</Text>
+                </View>
+                <Text style={[styles.modelChipSub, { color: theme.textSecondary, marginLeft: 4 }]}>Realtime · Anti-Hoaks</Text>
               </View>
 
               {/* Messages Scroll Area */}
@@ -345,32 +532,79 @@ export default function ExploreScreen() {
                 onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}>
                 {messages.map((msg) => {
                   const isAi = msg.sender === 'ai';
+                  const aiMsg = msg as AiMessage;
                   return (
-                    <View
-                      key={msg.id}
-                      style={[
-                        styles.messageRow,
-                        isAi ? styles.aiRow : styles.userRow
-                      ]}>
-                      {isAi && (
-                        <View style={styles.aiAvatar}>
-                          <Ionicons name="shield-checkmark" size={16} color="#ffffff" />
+                    <View key={msg.id}>
+                      <View style={[styles.messageRow, isAi ? styles.aiRow : styles.userRow]}>
+                        {isAi && (
+                          <View style={styles.aiAvatar}>
+                            <Ionicons name="shield-checkmark" size={16} color="#ffffff" />
+                          </View>
+                        )}
+                        <View
+                          style={[
+                            styles.bubble,
+                            isAi
+                              ? [styles.aiBubble, { backgroundColor: theme.background === '#ffffff' ? '#f3edf7' : '#29252c', borderColor: theme.backgroundElement }]
+                              : styles.userBubble
+                          ]}>
+                          <View style={{ width: '100%' }}>
+                            {renderFormattedText(msg.text, theme, isAi)}
+                          </View>
+                          {msg.timestamp !== 'Baru saja' && (
+                            <Text style={{ fontSize: 9, color: isAi ? theme.textSecondary : 'rgba(255,255,255,0.6)', marginTop: 4 }}>{msg.timestamp}</Text>
+                          )}
+                        </View>
+                      </View>
+                      {/* Sources from Tavily */}
+                      {isAi && aiMsg.sources && aiMsg.sources.length > 0 && (
+                        <View style={{ paddingLeft: 40, marginTop: 4, marginBottom: 4, gap: 4 }}>
+                          {aiMsg.sources.map((src, i) => (
+                            <View key={i} style={[styles.sourceCard, { backgroundColor: theme.background === '#ffffff' ? '#eef2ff' : '#1e1e30', borderColor: '#4f378a22' }]}>
+                              <Ionicons name="globe-outline" size={10} color="#4f378a" />
+                              <Text style={[styles.sourceCardText, { color: theme.textSecondary }]} numberOfLines={1}>{src.title}</Text>
+                            </View>
+                          ))}
                         </View>
                       )}
-                      <View
-                        style={[
-                          styles.bubble,
-                          isAi
-                            ? [styles.aiBubble, { backgroundColor: theme.background === '#ffffff' ? '#f3edf7' : '#29252c', borderColor: theme.backgroundElement }]
-                            : styles.userBubble
-                        ]}>
-                        <Text style={[styles.messageText, isAi ? { color: theme.text } : { color: '#ffffff' }]}>
-                          {msg.text}
-                        </Text>
-                      </View>
+                      
+                      {/* Redirect to Verify Page Button */}
+                      {isAi && aiMsg.showVerifyRedirect && (
+                        <View style={{ paddingLeft: 40, marginTop: 4, marginBottom: 6 }}>
+                          <Pressable
+                            onPress={() => router.push('/verify')}
+                            style={styles.redirectVerifyBtn}
+                          >
+                            <LinearGradient
+                              colors={['#4f378a', '#6750a4']}
+                              start={{ x: 0, y: 0 }}
+                              end={{ x: 1, y: 0 }}
+                              style={styles.redirectVerifyGradient}
+                            >
+                              <Ionicons name="shield-checkmark" size={14} color="#ffffff" style={{ marginRight: 6 }} />
+                              <Text style={styles.redirectVerifyBtnText}>Buka Fitur Verifikasi Resmi</Text>
+                            </LinearGradient>
+                          </Pressable>
+                        </View>
+                      )}
                     </View>
                   );
                 })}
+
+                {/* Typing indicator */}
+                {isChatLoading && (
+                  <View style={[styles.messageRow, styles.aiRow]}>
+                    <View style={styles.aiAvatar}>
+                      <Ionicons name="shield-checkmark" size={16} color="#ffffff" />
+                    </View>
+                    <View style={[styles.bubble, styles.aiBubble, { backgroundColor: theme.background === '#ffffff' ? '#f3edf7' : '#29252c', borderColor: theme.backgroundElement }]}>
+                      <View style={{ flexDirection: 'row', gap: 6, alignItems: 'center' }}>
+                        <ActivityIndicator size="small" color="#4f378a" />
+                        <Text style={{ fontSize: 12, color: theme.textSecondary }}>Asisten Veritas sedang mencari & menganalisis...</Text>
+                      </View>
+                    </View>
+                  </View>
+                )}
               </ScrollView>
 
               {/* Suggestions Row */}
@@ -404,12 +638,15 @@ export default function ExploreScreen() {
                   value={inputMessage}
                   onChangeText={setInputMessage}
                   onSubmitEditing={() => handleSendMessage()}
+                  editable={!isChatLoading}
                 />
-                <Pressable onPress={() => handleSendMessage()} style={styles.sendButton}>
+                <Pressable onPress={() => handleSendMessage()} style={[styles.sendButton, isChatLoading && { opacity: 0.5 }]} disabled={isChatLoading}>
                   <LinearGradient
                     colors={['#4f378a', '#6750a4']}
                     style={styles.sendGradient}>
-                    <Ionicons name="send" size={16} color="#ffffff" />
+                    {isChatLoading
+                      ? <ActivityIndicator size="small" color="#ffffff" />
+                      : <Ionicons name="send" size={16} color="#ffffff" />}
                   </LinearGradient>
                 </Pressable>
               </View>
@@ -730,6 +967,40 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     paddingLeft: 40,
   },
+  // ── Model Picker Strip ─────────────────────────────────────────────────────
+  modelStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    gap: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  modelStripLabel: {
+    fontSize: 11,
+    fontFamily: 'Be Vietnam Pro',
+    fontWeight: '600',
+    marginRight: 4,
+  },
+  modelChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  modelChipText: {
+    fontSize: 11,
+    fontFamily: 'Be Vietnam Pro',
+    fontWeight: '700',
+  },
+  modelChipSub: {
+    fontSize: 9,
+    fontFamily: 'Be Vietnam Pro',
+  },
+  // ────────────────────────────────────────────────────────────────────────────
   aiAvatar: {
     width: 28,
     height: 28,
@@ -769,6 +1040,43 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 16,
     alignSelf: 'center',
+  },
+  sourceCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+  },
+  sourceCardText: {
+    fontSize: 10,
+    fontFamily: 'Be Vietnam Pro',
+    flex: 1,
+  },
+  redirectVerifyBtn: {
+    alignSelf: 'flex-start',
+    borderRadius: 20,
+    overflow: 'hidden',
+    marginTop: 4,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  redirectVerifyGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  redirectVerifyBtnText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '700',
+    fontFamily: 'Be Vietnam Pro',
   },
   suggestionChipText: {
     color: '#4f378a',

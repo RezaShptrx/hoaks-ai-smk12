@@ -10,17 +10,50 @@ datasource db {
   provider = "mysql"
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ReportStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   password  String
   name      String
+  role      Role     @default(USER)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  bookmarks News[]
+  bookmarks        News[]
+  profile          UserProfile?
+  reportsSubmitted HoaxReport[] @relation("ReporterRelation")
+  reportsReviewed  HoaxReport[] @relation("ReviewerRelation")
 
   @@map("users")
+}
+
+model UserProfile {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @unique @map("user_id")
+  username    String?
+  bio         String?  @db.Text
+  phoneNumber String?  @map("phone_number")
+  address     String?  @db.Text
+  dob         String?
+  occupation  String?
+  interests   String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
 }
 
 model News {
@@ -37,4 +70,22 @@ model News {
   user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("news")
+}
+
+model HoaxReport {
+  id        Int          @id @default(autoincrement())
+  category  String
+  url       String       @db.VarChar(1000)
+  notes     String?      @db.Text
+  imagePath String?      @db.VarChar(1000) @map("image_path")
+  status    ReportStatus @default(PENDING)
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  reporterId   Int?  @map("reporter_id")
+  reporter     User? @relation("ReporterRelation", fields: [reporterId], references: [id], onDelete: Cascade)
+  reviewedById Int?  @map("reviewed_by_id")
+  reviewedBy   User? @relation("ReviewerRelation", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@map("hoax_reports")
 }

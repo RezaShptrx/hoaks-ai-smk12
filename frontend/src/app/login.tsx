@@ -76,7 +76,13 @@ export default function LoginScreen() {
       <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={['top', 'left', 'right', 'bottom']}>
         {/* Minimal header */}
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
+          <Pressable onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace('/');
+            }
+          }} style={styles.backButton}>
             <Ionicons
               name="arrow-back"
               size={24}

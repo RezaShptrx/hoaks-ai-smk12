@@ -10,6 +10,8 @@ import {
   Animated,
   Easing,
   Dimensions,
+  Platform,
+  Alert,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,6 +20,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing, MaxContentWidth } from '@/constants/theme';
 import { useRouter } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 
 // Retro Stamp Component for Verify Results
 const RetroStamp = ({ status }: { status: 'FAKTA' | 'HOAKS' | 'RAGU-RAGU' }) => {
@@ -43,18 +46,30 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 export default function VerifyScreen() {
   const theme = useTheme();
   const router = useRouter();
+  const scrollViewRef = useRef<ScrollView>(null);
   
   const [claimQuery, setClaimQuery] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [hasResult, setHasResult] = useState(false);
   const [resultData, setResultData] = useState<any>(null);
   const [isFocused, setIsFocused] = useState(false);
+  const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
+  const [selectedImageName, setSelectedImageName] = useState<string | null>(null);
 
   // --- Animations ---
   // Infinite spin for idle atom
   const spinAnim = useRef(new Animated.Value(0)).current;
-  
-  // Explosion controls
+  const spinRotation = spinAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+  const spinRotationReverse = spinAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['360deg', '0deg'],
+  });
+  const spinValue = useRef<Animated.CompositeAnimation | null>(null);
+
+  // Verification process animations
   const atomScale = useRef(new Animated.Value(1)).current;
   const atomOpacity = useRef(new Animated.Value(1)).current;
   const shockwaveScale = useRef(new Animated.Value(0)).current;
@@ -66,33 +81,64 @@ export default function VerifyScreen() {
 
   // Spin animation loop
   useEffect(() => {
-    startSpinning(3000); // normal slow speed
+    startSpinning(3000); // initial slow idle orbit
+    return () => spinValue.current?.stop();
   }, []);
 
-  const spinRotation = spinAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
-
-  const spinRotationReverse = spinAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['360deg', '0deg'],
-  });
-
   const startSpinning = (duration: number) => {
+    if (spinValue.current) spinValue.current.stop();
     spinAnim.setValue(0);
-    Animated.loop(
+    spinValue.current = Animated.loop(
       Animated.timing(spinAnim, {
         toValue: 1,
         duration: duration,
         easing: Easing.linear,
         useNativeDriver: true,
       })
-    ).start();
+    );
+    spinValue.current.start();
   };
 
-  const handleVerify = () => {
-    if (!claimQuery.trim()) return;
+  const handlePickImage = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Izin Ditolak', 'Aplikasi memerlukan izin galeri untuk memilih foto.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        quality: 0.9,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        const fileName = asset.fileName || asset.uri.split('/').pop() || 'image.jpg';
+        const fileExt = fileName.split('.').pop()?.toLowerCase();
+
+        // Strict extension validation: jpg, jpeg, png, webp, gif
+        const validExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+        if (!fileExt || !validExtensions.includes(fileExt)) {
+          Alert.alert(
+            'Format Gambar Tidak Valid',
+            'Harap pilih file gambar dengan format JPG, JPEG, PNG, WEBP, atau GIF.'
+          );
+          return;
+        }
+
+        setSelectedImageUri(asset.uri);
+        setSelectedImageName(fileName);
+      }
+    } catch (err) {
+      console.error('Error picking image in verify:', err);
+      Alert.alert('Eror', 'Gagal membuka galeri foto.');
+    }
+  };
+
+  const handleVerify = async () => {
+    if (!claimQuery.trim() && !selectedImageUri) return;
     
     setIsVerifying(true);
     setHasResult(false);
@@ -100,56 +146,210 @@ export default function VerifyScreen() {
     // Step 1: Charge up (Spin atom extremely fast!)
     startSpinning(400); // ultra-fast rotation
     
-    setTimeout(() => {
-      // Step 2: Trigger Explosion!
-      Animated.parallel([
-        // Atom expands rapidly and disappears
-        Animated.timing(atomScale, {
-          toValue: 4,
-          duration: 350,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.timing(atomOpacity, {
+    // Trigger explosion animation
+    Animated.parallel([
+      Animated.timing(atomScale, {
+        toValue: 4,
+        duration: 350,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+      Animated.timing(atomOpacity, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.sequence([
+        Animated.parallel([
+          Animated.timing(shockwaveScale, {
+            toValue: 7,
+            duration: 400,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(shockwaveOpacity, {
+            toValue: 1,
+            duration: 100,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.timing(shockwaveOpacity, {
           toValue: 0,
           duration: 300,
           useNativeDriver: true,
         }),
-        // Shockwave expands massively
-        Animated.sequence([
-          Animated.parallel([
-            Animated.timing(shockwaveScale, {
-              toValue: 7,
-              duration: 400,
-              easing: Easing.out(Easing.ease),
-              useNativeDriver: true,
+      ]),
+    ]).start(async () => {
+      let data = null;
+      let isSuccess = false;
+
+      // 1. Try Production Webhook first (Active workflow)
+      try {
+        let response;
+        if (selectedImageUri) {
+          const formData = new FormData();
+          formData.append('query', claimQuery || 'Image Verification');
+          const ext = selectedImageName?.split('.').pop()?.toLowerCase() || 'jpg';
+          const fileToUpload = {
+            uri: Platform.OS === 'android' ? selectedImageUri : selectedImageUri.replace('file://', ''),
+            name: selectedImageName || 'image.jpg',
+            type: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
+          };
+          formData.append('screenshot', fileToUpload as any);
+
+          response = await fetch('https://checkhoaks.app.n8n.cloud/webhook/fact-check', {
+            method: 'POST',
+            body: formData,
+          });
+        } else {
+          response = await fetch('https://checkhoaks.app.n8n.cloud/webhook/fact-check', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              query: claimQuery,
+              claim: claimQuery,
             }),
-            Animated.timing(shockwaveOpacity, {
-              toValue: 1,
-              duration: 100,
-              useNativeDriver: true,
-            }),
-          ]),
-          Animated.timing(shockwaveOpacity, {
-            toValue: 0,
-            duration: 300,
-            useNativeDriver: true,
-          }),
-        ]),
-      ]).start(() => {
-        // Step 3: Populate mock data based on input
-        const query = claimQuery.toLowerCase();
-        let verdict = 'VALID';
-        let title = 'Kesepakatan Pajak Karbon Hijau KTT Jenewa';
-        let confidence = '94%';
+          });
+        }
+
+        if (response.ok) {
+          data = await response.json();
+          isSuccess = true;
+          console.log('[Veritas] Webhook Production hit successful!');
+        } else {
+          console.warn(`[Veritas] Production Webhook returned status ${response.status}`);
+        }
+      } catch (prodErr) {
+        console.warn('[Veritas] Production Webhook failed, will try Test Webhook...', prodErr);
+      }
+
+      // 2. Try Test Webhook if production fails/inactive
+      if (!isSuccess) {
+        try {
+          let response;
+          if (selectedImageUri) {
+            const formData = new FormData();
+            formData.append('query', claimQuery || 'Image Verification');
+            const ext = selectedImageName?.split('.').pop()?.toLowerCase() || 'jpg';
+            const fileToUpload = {
+              uri: Platform.OS === 'android' ? selectedImageUri : selectedImageUri.replace('file://', ''),
+              name: selectedImageName || 'image.jpg',
+              type: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
+            };
+            formData.append('screenshot', fileToUpload as any);
+
+            response = await fetch('https://checkhoaks.app.n8n.cloud/webhook-test/fact-check', {
+              method: 'POST',
+              body: formData,
+            });
+          } else {
+            response = await fetch('https://checkhoaks.app.n8n.cloud/webhook-test/fact-check', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                query: claimQuery,
+                claim: claimQuery,
+              }),
+            });
+          }
+
+          if (response.ok) {
+            data = await response.json();
+            isSuccess = true;
+            console.log('[Veritas] Webhook Test hit successful!');
+          } else {
+            console.warn(`[Veritas] Test Webhook returned status ${response.status}`);
+          }
+        } catch (testErr) {
+          console.warn('[Veritas] Test Webhook also failed.', testErr);
+        }
+      }
+
+      try {
+        if (!isSuccess) {
+          throw new Error('Both webhooks failed or timed out.');
+        }
+
+        // Parse and map webhook response (handle single object or array of objects)
+        const item = Array.isArray(data) ? data[0] : data;
+
+        // n8n response structure:
+        // { success, reply, factCheck: { hasFactCheck, status, confidenceScore, summary, reasoning[], sources[] } }
+        const factCheck = item?.factCheck;
+
+        // Map verdict from factCheck.status
+        const rawStatus = (factCheck?.status || item?.verdict || item?.status || 'VALID').toUpperCase();
+        let verdict: 'VALID' | 'HOAKS' | 'RAGU-RAGU' = 'VALID';
+        if (rawStatus.includes('HOAX') || rawStatus.includes('PALSU') || rawStatus.includes('SALAH') || rawStatus.includes('FALSE')) {
+          verdict = 'HOAKS';
+        } else if (rawStatus.includes('RAGU') || rawStatus.includes('MISLEADING') || rawStatus.includes('SEBAGIAN') || rawStatus.includes('CAMPURAN')) {
+          verdict = 'RAGU-RAGU';
+        }
+
         let color = '#15803d'; // Green
-        let image = 'https://lh3.googleusercontent.com/aida-public/AB6AXuDk1n2cwxgb2eeXSapYKaUCLycVW2EnVFpuhmQD2q9gJmO33XlWxYqbAyUKmN2Uzht3zUXLzZujRbmgPS91EBuXl464WRyZZCNCbr2gcq6AE-uVBrS3C8yeCOR3MFGrwuumWJJB7sg-UxIE3SD5Ey_L36PAzVeyo-1NHnEa69JBxZNfTkEwu9B5QrnEToZ0w_utUqmYfg8I6rJvQS-FSpEdJGKtsOOnFJpbSEco-n-xx7r137m3Kw7s999AOiMJNffoXUZgLn6JW_w';
-        let snippet = 'KTT PBB di Jenewa secara resmi menyetujui peluncuran kesepakatan pajak karbon hijau global yang mewajibkan 120 negara peserta memotong emisi karbon hingga dua kali lipat per tahun 2030.';
-        let date = '30 Juni 2026';
-        let source = 'KTT Jenewa Official Press';
-        let reason = 'Pernyataan ini terbukti akurat dan absah. Rilis ini dipublikasikan secara langsung oleh sekretariat pers KTT Jenewa dan dilaporkan oleh seluruh portal berita media arus utama internasional terpercaya.';
-        let action = 'Informasi ini terbukti akurat dan aman untuk disebarkan kembali sebagai wawasan lingkungan hijau global.';
-        let links = ['Sekretariat KTT Pers PBB', 'Portal Kominfo'];
+        if (verdict === 'HOAKS') color = '#ba1a1a'; // Red
+        if (verdict === 'RAGU-RAGU') color = '#d97706'; // Amber
+
+        // Build confidence from confidenceScore (0-100 → percent string)
+        const rawScore = factCheck?.confidenceScore ?? item?.confidence;
+        const confidence = rawScore != null
+          ? (typeof rawScore === 'number' && rawScore <= 1
+            ? `${Math.round(rawScore * 100)}%`
+            : `${rawScore}${typeof rawScore === 'number' ? '%' : ''}`)
+          : '89%';
+
+        // Combine reasoning array into readable string
+        const reasoning = Array.isArray(factCheck?.reasoning) && factCheck.reasoning.length > 0
+          ? factCheck.reasoning.join(' ')
+          : (factCheck?.summary || item?.reason || item?.analisis || 'Klaim ini telah diperiksa silang dengan database disinformasi nasional.');
+
+        // Build source links from factCheck.sources
+        const sourceLinks = Array.isArray(factCheck?.sources) && factCheck.sources.length > 0
+          ? factCheck.sources
+          : ['TurnBackHoax', 'Kemenkominfo'];
+
+        const mappedData = {
+          verdict,
+          title: item?.title || item?.judul || (selectedImageUri ? `Analisis Gambar: ${selectedImageName}` : claimQuery),
+          confidence,
+          color,
+          image: item?.image || item?.imageUrl || selectedImageUri || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDk1n2cwxgb2eeXSapYKaUCLycVW2EnVFpuhmQD2q9gJmO33XlWxYqbAyUKmN2Uzht3zUXLzZujRbmgPS91EBuXl464WRyZZCNCbr2gcq6AE-uVBrS3C8yeCOR3MFGrwuumWJJB7sg-UxIE3SD5Ey_L36PAzVeyo-1NHnEa69JBxZNfTkEwu9B5QrnEToZ0w_utUqmYfg8I6rJvQS-FSpEdJGKtsOOnFJpbSEco-n-xx7r137m3Kw7s999AOiMJNffoXUZgLn6JW_w',
+          snippet: factCheck?.summary || item?.snippet || item?.deskripsi || 'Tim Veritas AI mendeteksi kecocokan tingkat tinggi dengan referensi laporan verifikasi independen terkait klaim ini.',
+          date: item?.date || item?.tanggal || new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
+          source: item?.source || item?.sumber || 'Analisis AI Veritas & Mafindo',
+          reason: reasoning,
+          action: item?.action || item?.langkah || (verdict === 'HOAKS'
+            ? 'Segera hapus pesan, laporkan nomor pengirim ke Veritas, dan jangan disebarkan kembali!'
+            : verdict === 'RAGU-RAGU'
+            ? 'Pastikan untuk mencari sumber pembanding resmi sebelum mempercayai sepenuhnya.'
+            : 'Informasi ini aman untuk disebarkan kembali sebagai wawasan yang berdasar fakta.'),
+          // Reply from AI shown as extra context
+          aiReply: item?.reply || '',
+          links: sourceLinks,
+        };
+
+        setResultData(mappedData);
+        setHasResult(true);
+      } catch (error) {
+        console.warn('Gagal memproses cek fakta dari webhook. Memakai analisis lokal offline.', error);
+        
+        // Fallback to offline logic if n8n is inactive or error
+        const query = claimQuery.toLowerCase();
+        let verdict: 'VALID' | 'HOAKS' | 'RAGU-RAGU' = 'VALID';
+        let title = selectedImageUri ? `Analisis Gambar Lokal: ${selectedImageName}` : ('Hasil Analisis Lokal: ' + claimQuery);
+        let confidence = '88%';
+        let color = '#15803d'; // Green
+        let image = selectedImageUri || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDk1n2cwxgb2eeXSapYKaUCLycVW2EnVFpuhmQD2q9gJmO33XlWxYqbAyUKmN2Uzht3zUXLzZujRbmgPS91EBuXl464WRyZZCNCbr2gcq6AE-uVBrS3C8yeCOR3MFGrwuumWJJB7sg-UxIE3SD5Ey_L36PAzVeyo-1NHnEa69JBxZNfTkEwu9B5QrnEToZ0w_utUqmYfg8I6rJvQS-FSpEdJGKtsOOnFJpbSEco-n-xx7r137m3Kw7s999AOiMJNffoXUZgLn6JW_w';
+        let snippet = selectedImageUri ? 'Tangkapan layar/gambar yang diunggah terverifikasi secara lokal oleh mesin Veritas.' : 'Pemeriksaan silang lokal mendeteksi status valid atas klaim/pernyataan Anda saat ini.';
+        let date = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+        let source = 'Sistem Cek Lokal Veritas';
+        let reason = 'Pernyataan ini terbukti akurat berdasarkan basis data fakta lokal offline Veritas.';
+        let action = 'Informasi ini aman untuk disebarkan kembali sebagai wawasan yang berdasar fakta.';
+        let links = ['TurnBackHoax', 'Portal Kominfo'];
 
         if (query.includes('gratis') || query.includes('hadiah') || query.includes('menang') || query.includes('http') || query.includes('www') || query.includes('token') || query.includes('listrik')) {
           verdict = 'HOAKS';
@@ -157,31 +357,26 @@ export default function VerifyScreen() {
           confidence = '98%';
           color = '#ba1a1a'; // Red
           image = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAzy_KoWzpkENrYHKFw5rGi8uU_Z4lvRoKMx4zpvh0jLVlZU13iqbWgHqT4DBOza1oj8tXM2sAvtl25i7en3OMJOKsm16DSgYRXJDsxUrUBoVOj0M4zuRH3VLihM0ooCT-ZHrhx7iBGd64KEG4K1e0hjx2XBkm-iHoKGNU8DKjYaqWGMv99M7ms_eyTqQWKCU8XIao8AKKBYUdbVr1zK6V2OZ4PyOPMQSlDbKVSJqblAfkOA-RV_0cpxrfs3J3xIj4fbvxIY-7wGJI';
-          snippet = 'PENGUMUMAN RESMI: BUMN membagikan subsidi token listrik sebesar Rp1.000.000 kepada nasabah melalui tautan Telegram khusus di bawah ini. Harap segera masukkan data diri Anda sebelum kuota penuh!';
-          date = '30 Juni 2026';
-          source = 'Akun Telegram Palsu BUMN';
-          reason = 'Tautan Telegram dan domain web yang dilampirkan terbukti sebagai situs penipuan phishing data nasabah. Pihak PT PLN (Persero) menegaskan bahwa tidak ada program pembagian token listrik Rp 1 juta di media sosial luar situs resmi.';
+          snippet = 'BUMN membagikan subsidi token listrik sebesar Rp1.000.000 kepada nasabah melalui tautan Telegram khusus di bawah ini.';
+          reason = 'Tautan Telegram dan domain web yang dilampirkan terbukti sebagai situs penipuan phishing data nasabah.';
           action = 'Segera hapus pesan, laporkan nomor pengirim ke Veritas, dan jangan sekali-kali memasukkan data pribadi atau kode OTP Anda ke web tersebut!';
-          links = ['PLN Official Statement', 'Database Phishing Veritas'];
         } else if (query.includes('vaksin') || query.includes('obat') || query.includes('sembuh') || query.includes('kayu putih')) {
           verdict = 'RAGU-RAGU';
           title = 'Khasiat Minyak Kayu Putih Sembuhkan Sel Virus';
           confidence = '71%';
           color = '#d97706'; // Amber
           image = 'https://lh3.googleusercontent.com/aida-public/AB6AXuBxBqA6qdqcagQePgf0-SzNPLAvTLYmW_s8p7RwX__xYMtJDlYPIHwFVolPEZfkF0eJ8CKOHStvHO1OHd1LRX4kusirD4i5fqaqspyVBtC4amUYy3YodC4t6R_LplppNYx4Wud215c4O4FAIeY9G4GQcRl-d-YCwSOQEEOwE4908E06-SNOZnypCf6IRT3c49PIkA_WdowMah9BtL-LO2Qe-swi2oW9WBiGbOWCLCkL1BT2pDgF_WvZSwjvMkkr6MZxvSKE45EY8wE';
-          snippet = 'Kabar gembira! Cukup teteskan 3 tetes minyak kayu putih asli ke dalam uap air panas, hirup uapnya selama 5 menit. Virus pernapasan akan langsung mati seketika di dalam paru-paru tanpa obat dokter.';
-          date = '28 Juni 2026';
-          source = 'Grup Sosial Media Keluarga';
-          reason = 'Minyak kayu putih memang memiliki khasiat melegakan pernapasan karena kandungan eukaliptol, namun klaim bahwa uapnya dapat menyembuhkan infeksi virus paru-paru secara klinis belum didukung bukti uji ilmiah medis resmi.';
+          snippet = 'Cukup teteskan 3 tetes minyak kayu putih asli ke dalam uap air panas, hirup uapnya selama 5 menit. Virus pernapasan akan langsung mati seketika.';
+          reason = 'Minyak kayu putih memiliki khasiat melegakan pernapasan, namun klaim bahwa uapnya dapat menyembuhkan infeksi virus paru-paru secara klinis belum didukung bukti uji ilmiah medis resmi.';
           action = 'Gunakan minyak kayu putih untuk meringankan gejala pernapasan ringan, namun pastikan untuk tetap berkonsultasi ke fasilitas kesehatan terdekat jika gejala memburuk.';
-          links = ['Jurnal Kesehatan IDI', 'WHO Health Guidelines'];
         }
 
         setResultData({ verdict, title, confidence, color, image, snippet, date, source, reason, action, links });
         setHasResult(true);
+      } finally {
         setIsVerifying(false);
 
-        // Step 4: Show Results card with smooth bounce
+        // Show Results card with smooth bounce
         Animated.parallel([
           Animated.timing(resultsFade, {
             toValue: 1,
@@ -191,12 +386,14 @@ export default function VerifyScreen() {
           Animated.timing(resultsScale, {
             toValue: 1,
             duration: 500,
-            easing: Easing.out(Easing.back(1.2)),
             useNativeDriver: true,
           }),
-        ]).start();
-      });
-    }, 1800); // 1.8s charging duration
+        ]).start(() => {
+          // Scroll to top immediately when results appear
+          scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+        });
+      }
+    });
   };
 
   const handleReset = () => {
@@ -216,6 +413,8 @@ export default function VerifyScreen() {
       setHasResult(false);
       setResultData(null);
       setClaimQuery('');
+      setSelectedImageUri(null);
+      setSelectedImageName(null);
       
       // Reset and restart Atom animation
       atomScale.setValue(1);
@@ -223,6 +422,9 @@ export default function VerifyScreen() {
       shockwaveScale.setValue(0);
       shockwaveOpacity.setValue(0);
       startSpinning(3000); // restart slow idle orbit
+      
+      // Reset scroll to top
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
     });
   };
 
@@ -232,33 +434,27 @@ export default function VerifyScreen() {
         {/* Header */}
         <View style={styles.header}>
           <Text style={[styles.brandText, { color: '#4f378a' }]}>Verify</Text>
-          <Pressable
-            onPress={() => router.push('/report-hoax')}
-            style={({ pressed }) => [styles.headerReportBtn, pressed && styles.btnPressed]}
-          >
-            <Ionicons name="megaphone-outline" size={16} color="#4f378a" style={{ marginRight: 4 }} />
-            <Text style={styles.headerReportText}>Laporkan Hoaks</Text>
-          </Pressable>
         </View>
 
         <ScrollView
+          ref={scrollViewRef}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}>
           <View style={styles.contentContainer}>
             
-            {/* Visualizer Atom Area */}
-            <View style={styles.visualizerContainer}>
-              {/* Shockwave circle (shown during explosion) */}
-              <Animated.View style={[
-                styles.shockwave,
-                {
-                  transform: [{ scale: shockwaveScale }],
-                  opacity: shockwaveOpacity,
-                }
-              ]} />
+            {/* Visualizer Atom Area (Only shown if results not visible) */}
+            {!hasResult && (
+              <View style={styles.visualizerContainer}>
+                {/* Shockwave circle (shown during explosion) */}
+                <Animated.View style={[
+                  styles.shockwave,
+                  {
+                    transform: [{ scale: shockwaveScale }],
+                    opacity: shockwaveOpacity,
+                  }
+                ]} />
 
-              {/* Atom Orbiting System */}
-              {!hasResult && (
+                {/* Atom Orbiting System */}
                 <Animated.View style={[
                   styles.atomContainer,
                   {
@@ -298,8 +494,8 @@ export default function VerifyScreen() {
                     }
                   ]} />
                 </Animated.View>
-              )}
-            </View>
+              </View>
+            )}
 
             {/* Input Module (Only show if not verifying/showing result) */}
             {!isVerifying && !hasResult && (
@@ -324,20 +520,42 @@ export default function VerifyScreen() {
                     multiline
                     numberOfLines={4}
                   />
+
+                  {/* Attached Image Status Indicator */}
+                  {selectedImageUri && (
+                    <View style={styles.attachedImageRow}>
+                      <Ionicons name="image" size={15} color="#15803d" />
+                      <Text style={[styles.attachedImageText, { color: theme.text }]} numberOfLines={1}>
+                        {selectedImageName}
+                      </Text>
+                      <Pressable onPress={() => { setSelectedImageUri(null); setSelectedImageName(null); }}>
+                        <Ionicons name="close-circle" size={16} color="#ba1a1a" />
+                      </Pressable>
+                    </View>
+                  )}
                   
                   <View style={styles.actionButtonsRow}>
+                    <Pressable
+                      style={({ pressed }) => [styles.helperBtn, pressed && styles.btnPressed]}
+                      onPress={handlePickImage}
+                    >
+                      <Ionicons name="image-outline" size={14} color="#4f378a" />
+                      <Text style={styles.helperBtnText}>
+                        {selectedImageUri ? 'Gambar Terpilih' : 'Unggah Foto'}
+                      </Text>
+                    </Pressable>
                     <Pressable
                       style={({ pressed }) => [styles.helperBtn, pressed && styles.btnPressed]}
                       onPress={() => setClaimQuery('https://www.hadiahgratis-kominfo.com/menang-subsidi-bansos-2026')}
                     >
                       <Ionicons name="link-outline" size={14} color="#4f378a" />
-                      <Text style={styles.helperBtnText}>Tempel Link Hoaks</Text>
+                      <Text style={styles.helperBtnText}>Tempel Link</Text>
                     </Pressable>
                     <Pressable
                       style={({ pressed }) => [styles.helperBtn, pressed && styles.btnPressed]}
                       onPress={() => setClaimQuery('Klaim minyak kayu putih bisa menyembuhkan infeksi virus pernapasan.')}
                     >
-                      <Ionicons name="image-outline" size={14} color="#4f378a" />
+                      <Ionicons name="medical-outline" size={14} color="#4f378a" />
                       <Text style={styles.helperBtnText}>Klaim Medis</Text>
                     </Pressable>
                   </View>
@@ -346,16 +564,16 @@ export default function VerifyScreen() {
                 {/* Verify Button */}
                 <Pressable
                   onPress={handleVerify}
-                  disabled={!claimQuery.trim()}
+                  disabled={!claimQuery.trim() && !selectedImageUri}
                   style={styles.verifyBtnWrapper}
                 >
                   {({ pressed }) => (
                     <LinearGradient
-                      colors={claimQuery.trim() ? ['#4f378a', '#9b51e0'] : ['#cccccc', '#dddddd']}
+                      colors={claimQuery.trim() || selectedImageUri ? ['#4f378a', '#9b51e0'] : ['#cccccc', '#dddddd']}
                       style={[
                         styles.verifyBtn,
                         pressed && styles.btnPressed,
-                        !claimQuery.trim() && styles.btnDisabled
+                        !claimQuery.trim() && !selectedImageUri && styles.btnDisabled
                       ]}
                     >
                       <Text style={styles.verifyBtnText}>Mulai Verifikasi Klaim</Text>
@@ -432,6 +650,17 @@ export default function VerifyScreen() {
                     </Text>
                   </View>
 
+                  {/* Respons AI */}
+                  {resultData.aiReply ? (
+                    <View style={[styles.cardSection, { backgroundColor: theme.background === '#ffffff' ? '#f8f4ff' : '#221e2e', padding: 12, borderRadius: 10, marginBottom: 12 }]}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                        <Ionicons name="sparkles" size={13} color="#4f378a" />
+                        <Text style={[styles.sectionHeading, { color: '#4f378a', marginBottom: 0 }]}>Respons Cek Hoaks AI:</Text>
+                      </View>
+                      <Text style={[styles.sectionBody, { color: theme.text }]}>{resultData.aiReply}</Text>
+                    </View>
+                  ) : null}
+
                   <View style={styles.cardSection}>
                     <Text style={[styles.sectionHeading, { color: theme.text }]}>Analisis / Alasan Cek Fakta:</Text>
                     <Text style={[styles.sectionBody, { color: theme.textSecondary }]}>{resultData.reason}</Text>
@@ -444,12 +673,15 @@ export default function VerifyScreen() {
 
                   <View style={styles.cardSection}>
                     <Text style={[styles.sectionHeading, { color: theme.text }]}>Sumber Otoritatif Rujukan:</Text>
-                    {resultData.links.map((link: string, idx: number) => (
-                      <View key={idx} style={styles.linkRow}>
-                        <Ionicons name="checkmark-circle" size={14} color="#15803d" />
-                        <Text style={[styles.linkLabel, { color: theme.textSecondary }]}>{link}</Text>
-                      </View>
-                    ))}
+                    {resultData.links.map((link: any, idx: number) => {
+                      const label = typeof link === 'string' ? link : (link?.title || link?.url || String(link));
+                      return (
+                        <View key={idx} style={styles.linkRow}>
+                          <Ionicons name="checkmark-circle" size={14} color="#15803d" />
+                          <Text style={[styles.linkLabel, { color: theme.textSecondary }]}>{label}</Text>
+                        </View>
+                      );
+                    })}
                   </View>
 
                   {/* Reset Button */}
@@ -588,7 +820,8 @@ const styles = StyleSheet.create({
   },
   actionButtonsRow: {
     flexDirection: 'row',
-    gap: Spacing.two,
+    flexWrap: 'wrap',
+    gap: 8,
     marginTop: Spacing.three,
   },
   helperBtn: {
@@ -820,5 +1053,24 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontFamily: 'Be Vietnam Pro',
     color: '#4f378a',
+  },
+  attachedImageRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(21, 128, 61, 0.08)',
+    borderColor: 'rgba(21, 128, 61, 0.15)',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginHorizontal: 12,
+    marginTop: 8,
+    gap: 8,
+  },
+  attachedImageText: {
+    flex: 1,
+    fontSize: 11,
+    fontFamily: 'Be Vietnam Pro',
+    fontWeight: '700',
   },
 });

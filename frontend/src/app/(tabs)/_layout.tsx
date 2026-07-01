@@ -7,7 +7,7 @@ import { Colors } from '@/constants/theme';
 // Screens that are "root" tab screens — pressing back here should exit the app
 const ROOT_TAB_PATHS = ['/home', '/research', '/verify', '/explore', '/profile'];
 
-export default function AppTabs() {
+export default function TabLayout() {
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
   const pathname = usePathname();
@@ -16,31 +16,17 @@ export default function AppTabs() {
   useEffect(() => {
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
       if (ROOT_TAB_PATHS.includes(pathname)) {
-        // On a root tab: exit the app instead of crashing with GO_BACK unhandled
+        // On a root tab: exit the app instead of crashing or going back
         BackHandler.exitApp();
-        return true; // consumed — prevents error
+        return true; // consumed
       }
-      return false; // not consumed — let expo-router handle (router.back())
+      return false; // not consumed, let expo-router handle
     });
     return () => subscription.remove();
   }, [pathname]);
 
-
-  const hiddenTabOptions = {
-    href: null,
-    tabBarStyle: {
-      display: 'none' as const,
-      position: 'absolute' as const,
-      bottom: -100,
-      height: 0,
-      borderTopWidth: 0,
-      elevation: 0,
-    },
-  };
-
   return (
     <Tabs
-      backBehavior="none"
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
@@ -50,13 +36,8 @@ export default function AppTabs() {
         tabBarActiveTintColor: '#4f378a',
         tabBarInactiveTintColor: colors.textSecondary,
       }}>
-      {/* 1. Welcome Page (index) - MUST be first to act as the default initial screen */}
-      <Tabs.Screen
-        name="index"
-        options={hiddenTabOptions}
-      />
-
-      {/* 2. Home (Dashboard / News Feed) Tab */}
+      
+      {/* 1. Home (Dashboard / News Feed) Tab */}
       <Tabs.Screen
         name="home"
         options={{
@@ -71,7 +52,7 @@ export default function AppTabs() {
         }}
       />
       
-      {/* 3. Research Tab */}
+      {/* 2. Research Tab */}
       <Tabs.Screen
         name="research"
         options={{
@@ -86,7 +67,7 @@ export default function AppTabs() {
         }}
       />
       
-      {/* 4. Verify (Fact Checker) Tab */}
+      {/* 3. Verify (Fact Checker) Tab */}
       <Tabs.Screen
         name="verify"
         options={{
@@ -101,7 +82,7 @@ export default function AppTabs() {
         }}
       />
       
-      {/* 5. Explore (AI Assistant) Tab */}
+      {/* 4. Explore (AI Assistant) Tab */}
       <Tabs.Screen
         name="explore"
         options={{
@@ -116,7 +97,7 @@ export default function AppTabs() {
         }}
       />
 
-      {/* 6. Profile Tab */}
+      {/* 5. Profile Tab */}
       <Tabs.Screen
         name="profile"
         options={{
@@ -129,40 +110,6 @@ export default function AppTabs() {
             />
           ),
         }}
-      />
-
-      {/* Hide Auth & News Detail Screens from Tab bar */}
-      <Tabs.Screen
-        name="login"
-        options={hiddenTabOptions}
-      />
-      <Tabs.Screen
-        name="register"
-        options={hiddenTabOptions}
-      />
-      <Tabs.Screen
-        name="otp"
-        options={hiddenTabOptions}
-      />
-      <Tabs.Screen
-        name="forgot-password"
-        options={hiddenTabOptions}
-      />
-      <Tabs.Screen
-        name="news-detail"
-        options={hiddenTabOptions}
-      />
-      <Tabs.Screen
-        name="favorite"
-        options={hiddenTabOptions}
-      />
-      <Tabs.Screen
-        name="report-hoax"
-        options={hiddenTabOptions}
-      />
-      <Tabs.Screen
-        name="guide-detail"
-        options={hiddenTabOptions}
       />
     </Tabs>
   );

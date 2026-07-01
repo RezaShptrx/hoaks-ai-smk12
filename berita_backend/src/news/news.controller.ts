@@ -3,18 +3,25 @@ import {
   Get,
   Post,
   Delete,
+  Patch,
   Body,
   Param,
   UseGuards,
   ParseIntPipe,
   Query,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { NewsService } from './news.service';
 import { BookmarkNewsDto } from './dto/bookmark-news.dto';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Role, ReportStatus } from '@prisma/client';
 
 @ApiTags('News')
 @Controller('news')
@@ -85,5 +92,63 @@ export class NewsController {
     @CurrentUser() user: any,
   ) {
     return this.newsService.removeBookmark(id, user.id);
+  }
+
+  /**
+   * POST /news/report-hoax
+   * Authenticated — submits a hoax report with an optional file upload
+   */
+  @Post('report-hoax')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @UseInterceptors(FileInterceptor('screenshot'))
+  @ApiOperation({ summary: 'Submit a hoax report with screenshot' })
+  @ApiResponse({ status: 201, description: 'Hoax report submitted successfully.' })
+  async reportHoax(
+    @CurrentUser() user: any,
+    @Body('category') category: string,
+    @Body('url') url: string,
+    @Body('notes') notes?: string,
+    @UploadedFile() screenshot?: any,
+  ) {
+    return this.newsService.createHoaxReport({
+      category,
+      url,
+      notes,
+      screenshot,
+      reporterId: user.id,
+    });
+  }
+
+  /**
+   * GET /news/hoax-reports
+   * Admin only — lists all hoax reports
+   */
+  @Get('hoax-reports')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get all submitted hoax reports (Admin only)' })
+  @ApiResponse({ status: 200, description: 'Reports retrieved successfully.' })
+  async getHoaxReports(@Query('status') status?: ReportStatus) {
+    return this.newsService.getHoaxReports(status);
+  }
+
+  /**
+   * PATCH /news/hoax-reports/:id/review
+   * Admin only — approves or rejects a hoax report
+   */
+  @Patch('hoax-reports/:id/review')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Review a hoax report (Admin only)' })
+  @ApiResponse({ status: 200, description: 'Report reviewed successfully.' })
+  async reviewHoaxReport(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() admin: any,
+    @Body('status') status: ReportStatus,
+  ) {
+    return this.newsService.reviewHoaxReport(id, admin.id, status);
   }
 }

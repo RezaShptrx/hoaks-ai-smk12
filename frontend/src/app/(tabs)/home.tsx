@@ -7,6 +7,7 @@ import {
   ScrollView,
   Animated,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +17,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing, MaxContentWidth } from '@/constants/theme';
 import { apiClient } from '@/services/api-client';
+import UserAvatar from 'react-native-user-avatar';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -53,6 +55,152 @@ const RetroStamp = ({ status, size = 'normal' }: { status: 'FAKTA' | 'HOAKS' | '
   );
 };
 
+const classifyCategory = (title: string, content: string, isIndonesian = true): string => {
+  const text = `${title} ${content}`.toLowerCase();
+
+  // 1. Business / Bisnis
+  if (
+    text.includes('saham') || text.includes('ekonomi') || text.includes('bisnis') ||
+    text.includes('keuangan') || text.includes('investasi') || text.includes('bsi') ||
+    text.includes('bank') || text.includes('rupiah') || text.includes('inflasi') ||
+    text.includes('ihsg') || text.includes('ojk') || text.includes('obligasi') ||
+    text.includes('anggaran') || text.includes('fintech') || text.includes('perusahaan') ||
+    text.includes('pasar modal') || text.includes('bumn') || text.includes('bunga bank') ||
+    text.includes('tarif') || text.includes('pajak') || text.includes('subsidi') ||
+    text.includes('rupiah') || text.includes('transaksi') || text.includes('perdagangan') ||
+    text.includes('emiten') || text.includes('reksadana') || text.includes('investor') ||
+    text.includes('finansial') || text.includes('deflasi') || text.includes('crypto') ||
+    text.includes('kripto') || text.includes('bitcoin') || text.includes('neraca') ||
+    text.includes('fiskal') || text.includes('moneter') || text.includes('pendapatan') ||
+    text.includes('laba') || text.includes('rugi') || text.includes('omzet') ||
+    text.includes('korporasi') || text.includes('startup') || text.includes('kuliner') ||
+    text.includes('umkm') || text.includes('ritel') || text.includes('waralaba') ||
+    text.includes('komoditas') || text.includes('minyak bumi') || text.includes('emas') ||
+    text.includes('cukai') || text.includes('perbankan') || text.includes('utang') ||
+    text.includes('kredit') || text.includes('pinjol') || text.includes('pinjaman online')
+  ) {
+    return isIndonesian ? 'Bisnis' : 'Business';
+  }
+
+  // 2. Technology / Teknologi
+  if (
+    text.includes('teknologi') || text.includes('gadget') || text.includes('smartphone') ||
+    text.includes('android') || text.includes('ios') || text.includes('aplikasi') ||
+    text.includes('ai ') || text.includes('artificial intelligence') || text.includes('chip') ||
+    text.includes('komputer') || text.includes('internet') || text.includes('hacker') ||
+    text.includes('siber') || text.includes('antariksa') || text.includes('nasa') ||
+    text.includes('software') || text.includes('game') || text.includes('gaming') ||
+    text.includes('robot') || text.includes('inovasi') || text.includes('digital') ||
+    text.includes('science') || text.includes('sains') || text.includes('samsung') ||
+    text.includes('apple') || text.includes('google') || text.includes('microsoft') ||
+    text.includes('chatgpt') || text.includes('metaverse') || text.includes('blockchain') ||
+    text.includes('cyber') || text.includes('malware') || text.includes('ransomware') ||
+    text.includes('hardware') || text.includes('telekomunikasi') || text.includes('jaringan') ||
+    text.includes('5g') || text.includes('starlink') || text.includes('satelit') ||
+    text.includes('coding') || text.includes('programming') || text.includes('programmer') ||
+    text.includes('data science') || text.includes('cloud') || text.includes('server') ||
+    text.includes('semikonduktor') || text.includes('elektronik') || text.includes('luar angkasa') ||
+    text.includes('astronomi') || text.includes('fisika') || text.includes('kimia') ||
+    text.includes('matematika') || text.includes('kloning') || text.includes('dna') ||
+    text.includes('bioteknologi') || text.includes('teleskop')
+  ) {
+    return isIndonesian ? 'Teknologi' : 'Technology';
+  }
+
+  // 3. Politics / Politik
+  if (
+    text.includes('politik') || text.includes('pemilu') || text.includes('pilkada') ||
+    text.includes('dpr') || text.includes('kpu') || text.includes('presiden') ||
+    text.includes('mentri') || text.includes('menteri') || text.includes('koalisi') ||
+    text.includes('partai') || text.includes('kabinet') || text.includes('gubernur') ||
+    text.includes('walikota') || text.includes('bupati') || text.includes('kebijakan') ||
+    text.includes('uu ') || text.includes('undang-undang') || text.includes('kpk') ||
+    text.includes('hukum') || text.includes('sidang') || text.includes('diplomasi') ||
+    text.includes('negara') || text.includes('pemerintah') || text.includes('senat') ||
+    text.includes('demokrasi') || text.includes('oposisi') || text.includes('caleg') ||
+    text.includes('capres') || text.includes('cawapres') || text.includes('koalisi') ||
+    text.includes('parlemen') || text.includes('konstitusi') || text.includes('mk ') ||
+    text.includes('mahkamah') || text.includes('jaksa') || text.includes('hakim') ||
+    text.includes('tni') || text.includes('polri') || text.includes('kapolri') ||
+    text.includes('korupsi') || text.includes('suap') || text.includes('gratifikasi') ||
+    text.includes('demonstrasi') || text.includes('unjuk rasa') || text.includes('birokrasi') ||
+    text.includes('asn') || text.includes('pns') || text.includes('diplomatik') ||
+    text.includes('luar negeri') || text.includes('perdana menteri') || text.includes('dprd') ||
+    text.includes('dpd') || text.includes('gerindra') || text.includes('pdi-p') ||
+    text.includes('golkar') || text.includes('nasdem') || text.includes('pkb') ||
+    text.includes('pks') || text.includes('demokrat') || text.includes('pan') ||
+    text.includes('ppp')
+  ) {
+    return isIndonesian ? 'Politik' : 'Politics';
+  }
+
+  // 4. Sports / Olahraga
+  if (
+    text.includes('olahraga') || text.includes('sepak bola') || text.includes('sepakbola') ||
+    text.includes('liga') || text.includes('klub') || text.includes('pemain') ||
+    text.includes('timnas') || text.includes('pertandingan') || text.includes('juara') ||
+    text.includes('atlet') || text.includes('bulu tangkis') || text.includes('badminton') ||
+    text.includes('motogp') || text.includes('formula 1') || text.includes('f1') ||
+    text.includes('piala dunia') || text.includes('olimpiade') || text.includes('medali') ||
+    text.includes('skor') || text.includes('kemenangan') || text.includes('turnamen') ||
+    text.includes('pelatih') || text.includes('pssi') || text.includes('fifa') ||
+    text.includes('gelar') || text.includes('sirkuit') || text.includes('balapan') ||
+    text.includes('klasemen') || text.includes('stadion') || text.includes('transfer') ||
+    text.includes('kontrak') || text.includes('semifinal') || text.includes('final') ||
+    text.includes('perempat final') || text.includes('bola basket') || text.includes('nba') ||
+    text.includes('tenis') || text.includes('tinju') || text.includes('ufc') ||
+    text.includes('mma') || text.includes('bulutangkis') || text.includes('atletik') ||
+    text.includes('maraton') || text.includes('renang')
+  ) {
+    return isIndonesian ? 'Olahraga' : 'Sports';
+  }
+
+  // 5. Health / Kesehatan
+  if (
+    text.includes('kesehatan') || text.includes('sehat') || text.includes('penyakit') ||
+    text.includes('dokter') || text.includes('rumah sakit') || text.includes('klinis') ||
+    text.includes('obat') || text.includes('vaksin') || text.includes('virus') ||
+    text.includes('pandemi') || text.includes('gejala') || text.includes('stres') ||
+    text.includes('diet') || text.includes('nutrisi') || text.includes('bpjs') ||
+    text.includes('kanker') || text.includes('jantung') || text.includes('medis') ||
+    text.includes('gizi') || text.includes('terapi') || text.includes('mental') ||
+    text.includes('klinik') || text.includes('puskesmas') || text.includes('farmasi') ||
+    text.includes('apotek') || text.includes('idi') || text.includes('kemenkes') ||
+    text.includes('who') || text.includes('wabah') || text.includes('kolesterol') ||
+    text.includes('diabetes') || text.includes('tensi') || text.includes('darah tinggi') ||
+    text.includes('imunitas') || text.includes('suplemen') || text.includes('vitamin') ||
+    text.includes('psikolog') || text.includes('depresi') || text.includes('terapis') ||
+    text.includes('obesitas') || text.includes('gaya hidup sehat') || text.includes('olahraga sehat') ||
+    text.includes('nutrisional')
+  ) {
+    return isIndonesian ? 'Kesehatan' : 'Health';
+  }
+
+  // 6. Entertainment / Hiburan
+  if (
+    text.includes('hiburan') || text.includes('film') || text.includes('musik') ||
+    text.includes('lagu') || text.includes('konser') || text.includes('artis') ||
+    text.includes('selebriti') || text.includes('aktor') || text.includes('aktris') ||
+    text.includes('cinema') || text.includes('bioskop') || text.includes('sutradara') ||
+    text.includes('drama') || text.includes('k-pop') || text.includes('kpop') ||
+    text.includes('anime') || text.includes('manga') || text.includes('showbiz') ||
+    text.includes('festival') || text.includes('netflix') || text.includes('streaming') ||
+    text.includes('singel') || text.includes('album') || text.includes('band') ||
+    text.includes('penyanyi') || text.includes('selebgram') || text.includes('influencer') ||
+    text.includes('gosip') || text.includes('infotainment') || text.includes('komedi') ||
+    text.includes('stand-up') || text.includes('tontonan') || text.includes('teater') ||
+    text.includes('fashion') || text.includes('model') || text.includes('glamor') ||
+    text.includes('karpet merah')
+  ) {
+    return isIndonesian ? 'Hiburan' : 'Entertainment';
+  }
+
+  const demoCats = isIndonesian 
+    ? ['Politik', 'Teknologi', 'Kesehatan', 'Olahraga', 'Hiburan', 'Bisnis']
+    : ['Politics', 'Technology', 'Health', 'Sports', 'Entertainment', 'Business'];
+  return demoCats[title.length % demoCats.length];
+};
+
 export default function HomeScreen() {
   const theme = useTheme();
   const router = useRouter();
@@ -61,13 +209,18 @@ export default function HomeScreen() {
   const [selectedCategory, setSelectedCategory] = useState('Top News');
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoadingNews, setIsLoadingNews] = useState(false);
+  const [totalNews, setTotalNews] = useState(0);
+  const [bookmarkCount, setBookmarkCount] = useState(0);
+  const [topCategory, setTopCategory] = useState('-');
+  const [topCategoryPercent, setTopCategoryPercent] = useState(0);
 
   // Animations
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(20)).current;
   const scrollX = useRef(new Animated.Value(0)).current;
 
-  const categories = ['Top News', 'Politik', 'Olahraga', 'Teknologi', 'Kesehatan'];
+  const isAdmin = apiClient.getUser().role === 'ADMIN';
+  const categories = ['Top News', 'Politik', 'Olahraga', 'Teknologi', 'Kesehatan', 'Bisnis', 'Hiburan'];
 
   const breakingNews: Article = {
     id: 'b1',
@@ -136,11 +289,11 @@ export default function HomeScreen() {
     const loadNewsFromBackend = async () => {
       setIsLoadingNews(true);
       try {
-        const result = await apiClient.fetchNews(1, 12);
+        // Fetch 100 items for rich real-time statistics analysis
+        const result = await apiClient.fetchNews(1, 100);
         if (result && result.data && result.data.length > 0) {
           const mapped: Article[] = result.data.map((item: any) => {
             const src = item.sourceName || 'Berita';
-            // Map sourceName to proper display label
             const sourceLabel = (() => {
               const s = src.toLowerCase();
               if (s.includes('cnbc')) return 'CNBC Indonesia';
@@ -150,11 +303,12 @@ export default function HomeScreen() {
               if (s.includes('republika')) return 'Republika';
               return src;
             })();
+            const sourceNameLabel = sourceLabel;
             return {
               id: item.link,
-              category: sourceLabel,
+              category: classifyCategory(item.title || '', item.contentSnippet || '', true),
               title: item.title,
-              source: src, // keep raw for news-detail lookup
+              source: sourceNameLabel,
               time: item.isoDate ? new Date(item.isoDate).toLocaleDateString('id-ID') : 'Baru saja',
               image: item.image?.large || item.image?.small || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDk1n2cwxgb2eeXSapYKaUCLycVW2EnVFpuhmQD2q9gJmO33XlWxYqbAyUKmN2Uzht3zUXLzZujRbmgPS91EBuXl464WRyZZCNCbr2gcq6AE-uVBrS3C8yeCOR3MFGrwuumWJJB7sg-UxIE3SD5Ey_L36PAzVeyo-1NHnEa69JBxZNfTkEwu9B5QrnEToZ0w_utUqmYfg8I6rJvQS-FSpEdJGKtsOOnFJpbSEco-n-xx7r137m3Kw7s999AOiMJNffoXUZgLn6JW_w',
               verified: true,
@@ -162,9 +316,39 @@ export default function HomeScreen() {
               content: item.contentSnippet || '',
             };
           });
-          setArticles(mapped);
+
+          // Calculate category distribution dynamically from the 100 fetched articles
+          const catCounts: Record<string, number> = {};
+          mapped.forEach((art) => {
+            catCounts[art.category] = (catCounts[art.category] || 0) + 1;
+          });
+
+          let maxCat = '-';
+          let maxCount = 0;
+          Object.entries(catCounts).forEach(([cat, count]) => {
+            if (count > maxCount) {
+              maxCount = count;
+              maxCat = cat;
+            }
+          });
+
+          const percent = mapped.length > 0 ? Math.round((maxCount / mapped.length) * 100) : 0;
+          setTopCategory(maxCat);
+          setTopCategoryPercent(percent);
+          setTotalNews(result.totalItems || mapped.length);
+          setArticles(mapped.slice(0, 12));
         } else {
           setArticles(fallbackArticles);
+        }
+
+        // Fetch real database bookmarks count if logged in
+        if (apiClient.getToken()) {
+          const bookmarkResult = await apiClient.fetchBookmarks();
+          if (bookmarkResult && bookmarkResult.bookmarks) {
+            setBookmarkCount(bookmarkResult.bookmarks.length);
+          }
+        } else {
+          setBookmarkCount(0);
         }
       } catch (error) {
         console.warn('Gagal memuat berita dari backend. Memakai data statis.', error);
@@ -196,19 +380,25 @@ export default function HomeScreen() {
           </View>
           <View style={styles.headerRight}>
             <Link href="/report-hoax" asChild>
-              <Pressable style={styles.headerMegaphoneBtn}>
-                <Ionicons name="megaphone-outline" size={18} color="#4f378a" />
+              <Pressable style={({ pressed }) => [styles.headerReportBtn, pressed && { opacity: 0.85 }]}>
+                <Ionicons name="megaphone-outline" size={14} color="#4f378a" style={{ marginRight: 6 }} />
+                <Text style={styles.headerReportText}>Laporkan Hoaks</Text>
               </Pressable>
             </Link>
             <Link href="/profile" asChild>
               <Pressable style={styles.avatarWrapper}>
-                <Image
-                  style={styles.avatar}
-                  source={{
-                    uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCbhLLtMeXa1lE3ChTj8-dSYlq3AX5W9xMLZ95apEpF0_DcsBNgONALSC6mCl3Gnd7jzfTPD3v7qCyBxaEkGn0ii2Np1sR1g8w34pbuEbi0JennmtqieQC63SdYFA1vRAv-sI7vP8AgTbcVuT7G3rAQEHrhUnOhzz01-ERNTjd2Rlxeti-p1g_cwy47PuJIcvmhBH_bBdNKcfwXsV0gdRWpDraPAeRUjRUgaVVyoutyURrvmrZyBSN7-becXzmUQYV9UvEx4cZcc20',
-                  }}
-                  contentFit="cover"
-                />
+                {apiClient.getUser().id ? (
+                  <UserAvatar
+                    size={36}
+                    name={apiClient.getUser().fullName || apiClient.getUser().email || 'User'}
+                    bgColor="#4f378a"
+                    textColor="#ffffff"
+                  />
+                ) : (
+                  <View style={styles.emptyAvatar}>
+                    <Ionicons name="person" size={18} color="#4f378a" />
+                  </View>
+                )}
               </Pressable>
             </Link>
           </View>
@@ -359,29 +549,85 @@ export default function HomeScreen() {
                   </View>
                 </View>
 
-                {/* Bento Statistics Grid Row */}
+                {/* Bento Grid: Aduan Resmi & Cek Mandiri */}
                 <View style={styles.bentoRow}>
-                  {/* Fact of Day */}
-                  <LinearGradient
-                    colors={['#4f378a', '#765b00']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.factDayCard}>
-                    <Text style={styles.factDaySub}>FAKTA HARI INI</Text>
-                    <Text style={styles.factDayTitle}>Akurasi cek fakta AI kini tembus 98%.</Text>
-                    <Text style={styles.factDayDesc}>Protokol validasi Valid. terbaru menurunkan laju hoaks hingga 40%.</Text>
-                  </LinearGradient>
-
-                  {/* Active Verifiers */}
-                  <View style={[styles.verifiersCard, { borderColor: theme.backgroundElement, backgroundColor: theme.background === '#ffffff' ? '#fcfaff' : '#1b191c' }]}>
-                    <View style={styles.verifiersHeader}>
-                      <Text style={[styles.verifiersSub, { color: theme.textSecondary }]}>Verifikator Aktif</Text>
-                      <Ionicons name="shield" size={24} color="#765b00" />
+                  {/* Aduan Resmi Card */}
+                  <Pressable 
+                    onPress={() => router.push('/guide-detail?type=aduan')}
+                    style={({ pressed }) => [
+                      styles.factDayCard,
+                      pressed && { opacity: 0.85 }
+                    ]}
+                  >
+                    <LinearGradient
+                      colors={['#1a73e8', '#8b5cf6']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={StyleSheet.absoluteFillObject}
+                    />
+                    <View style={styles.cardHeaderWithIcon}>
+                      <Text style={styles.factDaySub}>PANDUAN INSTANSI</Text>
+                      <Ionicons name="megaphone-outline" size={15} color="#ffffff" />
                     </View>
-                    <Text style={[styles.verifiersCount, { color: theme.text }]}>12.4k</Text>
-                    <Text style={[styles.verifiersDesc, { color: theme.textSecondary }]}>Komunitas penegak fakta</Text>
-                  </View>
+                    <View>
+                      <Text style={styles.factDayTitle}>Aduan Resmi</Text>
+                      <Text style={styles.factDayDesc}>Cara melaporkan hoaks ke Komdigi & instansi berwenang.</Text>
+                    </View>
+                  </Pressable>
+
+                  {/* Cek Mandiri Card */}
+                  <Pressable 
+                    onPress={() => router.push('/guide-detail?type=edukasi')}
+                    style={({ pressed }) => [
+                      styles.factDayCard,
+                      pressed && { opacity: 0.85 }
+                    ]}
+                  >
+                    <LinearGradient
+                      colors={['#8b5cf6', '#ec4899']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={StyleSheet.absoluteFillObject}
+                    />
+                    <View style={styles.cardHeaderWithIcon}>
+                      <Text style={styles.factDaySub}>METODE VERIFIKASI</Text>
+                      <Ionicons name="shield-checkmark-outline" size={15} color="#ffffff" />
+                    </View>
+                    <View>
+                      <Text style={styles.factDayTitle}>Cek Mandiri</Text>
+                      <Text style={styles.factDayDesc}>3 langkah mudah memverifikasi kebenaran informasi mandiri.</Text>
+                    </View>
+                  </Pressable>
                 </View>
+
+                {/* Admin Moderation Entry Banner */}
+                {isAdmin && (
+                  <Pressable
+                    onPress={() => router.push('/admin-moderation')}
+                    style={({ pressed }) => [
+                      styles.adminBanner,
+                      { 
+                        backgroundColor: theme.background === '#ffffff' ? 'rgba(79, 55, 138, 0.05)' : 'rgba(255, 255, 255, 0.04)',
+                        borderColor: theme.background === '#ffffff' ? 'rgba(79, 55, 138, 0.12)' : 'rgba(255, 255, 255, 0.08)',
+                      },
+                      pressed && { opacity: 0.85 }
+                    ]}
+                  >
+                    <View style={styles.adminBannerContent}>
+                      <View style={styles.adminBannerTextCol}>
+                        <View style={[styles.adminBadgeRow, { backgroundColor: theme.background === '#ffffff' ? 'rgba(79, 55, 138, 0.1)' : 'rgba(255, 255, 255, 0.1)' }]}>
+                          <Ionicons name="shield-half" size={12} color="#4f378a" style={{ marginRight: 4 }} />
+                          <Text style={[styles.adminBadgeText, { color: '#4f378a' }]}>ADMIN ACCESS</Text>
+                        </View>
+                        <Text style={[styles.adminBannerTitle, { color: theme.text }]}>Verifikasi Laporan Hoaks</Text>
+                        <Text style={[styles.adminBannerSub, { color: theme.textSecondary }]}>Tinjau aduan terbaru yang dikirimkan oleh pengguna aplikasi.</Text>
+                      </View>
+                      <View style={[styles.adminBannerArrow, { backgroundColor: '#4f378a' }]}>
+                        <Ionicons name="arrow-forward" size={16} color="#ffffff" />
+                      </View>
+                    </View>
+                  </Pressable>
+                )}
               </>
             )}
 
@@ -477,15 +723,24 @@ const styles = StyleSheet.create({
   headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 16,
   },
-  headerMegaphoneBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(79, 55, 138, 0.08)',
-    justifyContent: 'center',
+  headerReportBtn: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 10,
+    justifyContent: 'center',
+    backgroundColor: 'rgba(79, 55, 138, 0.06)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#4f378a',
+  },
+  headerReportText: {
+    fontSize: 11,
+    fontWeight: '700',
+    fontFamily: 'Be Vietnam Pro',
+    color: '#4f378a',
   },
   avatarWrapper: {
     width: 36,
@@ -498,6 +753,13 @@ const styles = StyleSheet.create({
   avatar: {
     width: '100%',
     height: '100%',
+  },
+  emptyAvatar: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(79, 55, 138, 0.08)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   scrollContent: {
     flexGrow: 1,
@@ -625,11 +887,20 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.five,
   },
   factDayCard: {
-    flex: 1.2,
-    borderRadius: 24,
+    flex: 1,
+    borderRadius: 12,
     padding: Spacing.four,
     justifyContent: 'space-between',
     minHeight: 120,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  cardHeaderWithIcon: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    gap: 12,
   },
   factDaySub: {
     color: 'rgba(255,255,255,0.7)',
@@ -637,6 +908,8 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     fontFamily: 'Be Vietnam Pro',
     letterSpacing: 1,
+    marginRight: 8,
+    flexShrink: 1,
   },
   factDayTitle: {
     color: '#ffffff',
@@ -785,5 +1058,56 @@ const styles = StyleSheet.create({
   dot: {
     height: 8,
     borderRadius: 4,
+  },
+  adminBanner: {
+    width: '100%',
+    marginHorizontal: 0,
+    marginBottom: Spacing.five,
+    borderRadius: 12,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  adminBannerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    justifyContent: 'space-between',
+  },
+  adminBannerTextCol: {
+    flex: 1,
+    gap: 4,
+  },
+  adminBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+    marginBottom: 4,
+  },
+  adminBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    fontFamily: 'Be Vietnam Pro',
+    letterSpacing: 0.5,
+  },
+  adminBannerTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    fontFamily: 'Be Vietnam Pro',
+  },
+  adminBannerSub: {
+    fontSize: 12,
+    fontFamily: 'Be Vietnam Pro',
+    lineHeight: 16,
+  },
+  adminBannerArrow: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 12,
   },
 });

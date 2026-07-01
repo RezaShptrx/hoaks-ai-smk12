@@ -58,7 +58,7 @@ export default function ForgotPasswordScreen() {
     setTimeout(() => {
       setIsLoading(false);
       Alert.alert('Terkirim!', 'Kode verifikasi OTP telah dikirim ke email Anda.', [
-        { text: 'OK', onPress: () => router.replace('/otp') }
+        { text: 'OK', onPress: () => router.push('/otp') }
       ]);
     }, 1500);
   };
@@ -70,7 +70,13 @@ export default function ForgotPasswordScreen() {
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
         {/* Minimal header */}
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
+          <Pressable onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace('/login');
+            }
+          }} style={styles.backButton}>
             <Ionicons
               name="arrow-back"
               size={24}

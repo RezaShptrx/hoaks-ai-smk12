@@ -17,6 +17,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/use-theme';
 import { Spacing, MaxContentWidth } from '@/constants/theme';
+import * as ImagePicker from 'expo-image-picker';
+import { apiClient } from '@/services/api-client';
 
 // Session memory to track the report count across screens
 let dailyReportCount = 0;
@@ -28,16 +30,50 @@ export default function ReportHoaxScreen() {
   const [category, setCategory] = useState('Politik / SARA');
   const [url, setUrl] = useState('');
   const [notes, setNotes] = useState('');
-  const [screenshotSelected, setScreenshotSelected] = useState(false);
+  const [screenshotUri, setScreenshotUri] = useState<string | null>(null);
+  const [screenshotName, setScreenshotName] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const handleSelectScreenshot = () => {
-    // Simulate selecting a file from device gallery
-    setScreenshotSelected(true);
+  const handleSelectScreenshot = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Izin Ditolak', 'Aplikasi memerlukan izin galeri untuk mengunggah screenshot.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        quality: 0.9,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        const fileName = asset.fileName || asset.uri.split('/').pop() || 'image.jpg';
+        const fileExt = fileName.split('.').pop()?.toLowerCase();
+
+        // Strict extension validation: jpg, jpeg, png, webp, gif
+        const validExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+        if (!fileExt || !validExtensions.includes(fileExt)) {
+          Alert.alert(
+            'Format File Tidak Valid',
+            'Harap pilih file gambar dengan format JPG, JPEG, PNG, WEBP, atau GIF.'
+          );
+          return;
+        }
+
+        setScreenshotUri(asset.uri);
+        setScreenshotName(fileName);
+      }
+    } catch (err) {
+      console.error('Error picking image:', err);
+      Alert.alert('Eror', 'Gagal membuka galeri foto.');
+    }
   };
 
-  const handleSendReport = () => {
+  const handleSendReport = async () => {
     if (!url.trim()) {
       Alert.alert('Eror', 'Harap masukkan tautan (link) berita yang dicurigai.');
       return;
@@ -53,17 +89,37 @@ export default function ReportHoaxScreen() {
 
     setIsSubmitting(true);
 
-    // Simulate sending report payload to server
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const formData = new FormData();
+      formData.append('category', category);
+      formData.append('url', url);
+      formData.append('notes', notes);
+
+      if (screenshotUri) {
+        const ext = screenshotName?.split('.').pop()?.toLowerCase() || 'jpg';
+        const fileToUpload = {
+          uri: Platform.OS === 'android' ? screenshotUri : screenshotUri.replace('file://', ''),
+          name: screenshotName || 'screenshot.jpg',
+          type: `image/${ext === 'jpg' ? 'jpeg' : ext}`,
+        };
+        formData.append('screenshot', fileToUpload as any);
+      }
+
+      await apiClient.reportHoax(formData);
+
       dailyReportCount += 1;
       setSuccess(true);
       
       // Clear inputs
       setUrl('');
       setNotes('');
-      setScreenshotSelected(false);
-    }, 1500);
+      setScreenshotUri(null);
+      setScreenshotName(null);
+    } catch (err: any) {
+      Alert.alert('Gagal Mengirim Laporan', err.message || 'Terjadi kesalahan saat menghubungi server.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -74,7 +130,13 @@ export default function ReportHoaxScreen() {
       <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={['top', 'left', 'right', 'bottom']}>
         {/* Header */}
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.backBtn}>
+          <Pressable onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace('/verify');
+            }
+          }} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={24} color={theme.text} />
           </Pressable>
           <Text style={[styles.headerTitle, { color: theme.text }]}>Laporkan Hoaks</Text>
@@ -162,7 +224,7 @@ export default function ReportHoaxScreen() {
                 />
               </View>
 
-              {/* Screenshot Upload Simulator */}
+              {/* Screenshot Upload */}
               <View style={styles.inputGroup}>
                 <Text style={[styles.label, { color: theme.textSecondary }]}>Unggah Bukti Gambar / Tangkapan Layar</Text>
                 <Pressable
@@ -170,19 +232,19 @@ export default function ReportHoaxScreen() {
                   style={[
                     styles.uploadBox,
                     {
-                      borderColor: screenshotSelected ? '#15803d' : theme.backgroundElement,
+                      borderColor: screenshotUri ? '#15803d' : theme.backgroundElement,
                       backgroundColor: theme.background === '#ffffff' ? '#fbf9fc' : '#121214'
                     }
                   ]}
                 >
                   <Ionicons 
-                    name={screenshotSelected ? 'checkmark-circle' : 'cloud-upload-outline'} 
+                    name={screenshotUri ? 'checkmark-circle' : 'cloud-upload-outline'} 
                     size={24} 
-                    color={screenshotSelected ? '#15803d' : '#4f378a'} 
+                    color={screenshotUri ? '#15803d' : '#4f378a'} 
                   />
-                  <Text style={[styles.uploadText, { color: screenshotSelected ? '#15803d' : theme.textSecondary }]}>
-                    {screenshotSelected 
-                      ? 'Tangkapan Layar Berhasil Dilampirkan (1 File)' 
+                  <Text style={[styles.uploadText, { color: screenshotUri ? '#15803d' : theme.textSecondary }]}>
+                    {screenshotUri 
+                      ? `Terlampir: ${screenshotName}` 
                       : 'Pilih File Gambar Bukti'
                     }
                   </Text>

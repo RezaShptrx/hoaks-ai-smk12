@@ -87,6 +87,59 @@ export default function NewsDetailScreen() {
   };
   const sourceDisplayName = getSourceDisplayName(articleSource);
 
+  const getDynamicFactCheckAnalysis = () => {
+    const cleanTitle = articleTitle.trim();
+    const cleanSource = sourceDisplayName;
+
+    if (articleStatus === 'FAKTA') {
+      return [
+        {
+          label: 'Verifikasi Penerbit Media',
+          icon: 'checkmark-circle' as const,
+          color: '#15803d',
+          desc: `Artikel diterbitkan oleh ${cleanSource}, sebuah institusi media massa terdaftar yang mematuhi Kode Etik Jurnalistik dan terverifikasi oleh Dewan Pers. Informasi yang dilaporkan memiliki akurasi penulisan yang tinggi.`
+        },
+        {
+          label: 'Kredibilitas Konten & Rujukan',
+          icon: 'checkmark-circle' as const,
+          color: '#15803d',
+          desc: `Laporan tentang "${cleanTitle}" didasarkan pada kutipan narasumber otoritatif atau rilis data resmi primer, tanpa indikasi manipulasi konten atau distorsi fakta lapangan.`
+        }
+      ];
+    } else if (articleStatus === 'HOAKS') {
+      return [
+        {
+          label: 'Hasil Deteksi Inkonsistensi',
+          icon: 'close-circle' as const,
+          color: '#ba1a1a',
+          desc: `Judul atau klaim tentang "${cleanTitle}" bertentangan dengan fakta ilmiah, dokumen resmi, atau konfirmasi langsung dari lembaga berwenang yang bersangkutan.`
+        },
+        {
+          label: 'Indikasi Pola Disinformasi',
+          icon: 'close-circle' as const,
+          color: '#ba1a1a',
+          desc: `Informasi disebarkan melalui saluran tidak resmi tanpa sumber primer yang valid. Konten ini cenderung menyebarkan bias untuk menyesatkan pembaca.`
+        }
+      ];
+    } else {
+      // RAGU-RAGU
+      return [
+        {
+          label: 'Keterbatasan Bukti Otoritatif',
+          icon: 'alert-circle' as const,
+          color: '#d97706',
+          desc: `Klaim dalam berita "${cleanTitle}" belum didukung oleh rilis resmi, kajian ilmiah publik, atau konfirmasi resmi dari pihak-pihak terkait.`
+        },
+        {
+          label: 'Campuran Fakta dan Opini',
+          icon: 'alert-circle' as const,
+          color: '#d97706',
+          desc: `Sebagian informasi mengenai topik ini mungkin benar, namun disajikan bersama spekulasi, asumsi pribadi, atau rumor yang belum terbukti kebenarannya secara empiris.`
+        }
+      ];
+    }
+  };
+
   // Animation
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -169,7 +222,13 @@ export default function NewsDetailScreen() {
         
         {/* Header bar */}
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
+          <Pressable onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace('/home');
+            }
+          }} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={theme.text} />
           </Pressable>
           <Text style={[styles.headerTitle, { color: theme.text }]}>Detail Berita</Text>
@@ -273,74 +332,19 @@ export default function NewsDetailScreen() {
                 </Text>
               </View>
 
-              {articleStatus === 'FAKTA' && (
-                <View style={styles.factCheckList}>
-                  <View style={styles.factCheckItem}>
-                    <Ionicons name="checkmark-circle" size={18} color="#15803d" style={styles.factCheckIcon} />
+              <View style={styles.factCheckList}>
+                {getDynamicFactCheckAnalysis().map((item, idx) => (
+                  <View key={idx} style={styles.factCheckItem}>
+                    <Ionicons name={item.icon} size={18} color={item.color} style={styles.factCheckIcon} />
                     <View style={styles.factCheckDetails}>
-                      <Text style={[styles.factLabel, { color: theme.text }]}>Sumber Resmi Terdaftar</Text>
+                      <Text style={[styles.factLabel, { color: theme.text }]}>{item.label}</Text>
                       <Text style={[styles.factDesc, { color: theme.textSecondary }]}>
-                        Berita berasal dari siaran resmi pemerintah dan dipublikasikan oleh media nasional terdaftar Dewan Pers.
+                        {item.desc}
                       </Text>
                     </View>
                   </View>
-                  <View style={styles.factCheckItem}>
-                    <Ionicons name="checkmark-circle" size={18} color="#15803d" style={styles.factCheckIcon} />
-                    <View style={styles.factCheckDetails}>
-                      <Text style={[styles.factLabel, { color: theme.text }]}>Kesesuaian Fakta Lapangan</Text>
-                      <Text style={[styles.factDesc, { color: theme.textSecondary }]}>
-                        Pernyataan isi berita sejalan dengan rilis resmi dari instansi global di Swiss.
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              )}
-
-              {articleStatus === 'HOAKS' && (
-                <View style={styles.factCheckList}>
-                  <View style={styles.factCheckItem}>
-                    <Ionicons name="close-circle" size={18} color="#ba1a1a" style={styles.factCheckIcon} />
-                    <View style={styles.factCheckDetails}>
-                      <Text style={[styles.factLabel, { color: theme.text }]}>Domain Phishing Palsu</Text>
-                      <Text style={[styles.factDesc, { color: theme.textSecondary }]}>
-                        Tautan yang disertakan bukan alamat web resmi kementerian melainkan hosting gratisan mencurigakan.
-                      </Text>
-                    </View>
-                  </View>
-                  <View style={styles.factCheckItem}>
-                    <Ionicons name="close-circle" size={18} color="#ba1a1a" style={styles.factCheckIcon} />
-                    <View style={styles.factCheckDetails}>
-                      <Text style={[styles.factLabel, { color: theme.text }]}>Bantahan Resmi Instansi</Text>
-                      <Text style={[styles.factDesc, { color: theme.textSecondary }]}>
-                        Humas PLN dan BUMN telah merilis pernyataan tegas bahwa program bagi-bagi uang via Telegram ini palsu.
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              )}
-
-              {articleStatus === 'RAGU-RAGU' && (
-                <View style={styles.factCheckList}>
-                  <View style={styles.factCheckItem}>
-                    <Ionicons name="alert-circle" size={18} color="#d97706" style={styles.factCheckIcon} />
-                    <View style={styles.factCheckDetails}>
-                      <Text style={[styles.factLabel, { color: theme.text }]}>Belum Lolos Uji Klinis</Text>
-                      <Text style={[styles.factDesc, { color: theme.textSecondary }]}>
-                        Klaim kesehatan mengenai penyembuhan instan virus pernapasan belum diuji secara formal di laboratorium IDI.
-                      </Text>
-                    </View>
-                  </View>
-                  <View style={styles.factCheckItem}>
-                    <Ionicons name="alert-circle" size={18} color="#d97706" style={styles.factCheckIcon} />
-                    <View style={styles.factCheckDetails}>
-                      <Text style={[styles.factLabel, { color: theme.text }]}>Bercampur Informasi Benar</Text>
-                      <Text style={[styles.factDesc, { color: theme.textSecondary }]}>
-                        Kandungan alami memang terbukti meredakan gejala flu biasa, namun melebih-lebihkannya bisa menyesatkan.
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              )}
+                ))}
+              </View>
 
               <View style={[styles.factCheckFooter, { borderTopColor: theme.backgroundElement }]}>
                 <Text style={[styles.updatedText, { color: theme.textSecondary }]}>Diperbarui hari ini</Text>
