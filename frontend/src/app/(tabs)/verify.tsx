@@ -292,11 +292,13 @@ export default function VerifyScreen() {
         const factCheck = item?.factCheck;
 
         // Map verdict from factCheck.status
-        const rawStatus = (factCheck?.status || item?.verdict || item?.status || 'VALID').toUpperCase();
-        let verdict: 'VALID' | 'HOAKS' | 'RAGU-RAGU' = 'VALID';
-        if (rawStatus.includes('HOAX') || rawStatus.includes('PALSU') || rawStatus.includes('SALAH') || rawStatus.includes('FALSE')) {
+        const rawStatus = (factCheck?.status || item?.verdict || item?.status || 'RAGU-RAGU').toUpperCase();
+        let verdict: 'FAKTA' | 'HOAKS' | 'RAGU-RAGU' = 'RAGU-RAGU'; // Fallback to RAGU-RAGU instead of FAKTA
+        if (rawStatus.includes('HOAX') || rawStatus.includes('HOAKS') || rawStatus.includes('PALSU') || rawStatus.includes('SALAH') || rawStatus.includes('FALSE') || rawStatus.includes('DISINFORMASI')) {
           verdict = 'HOAKS';
-        } else if (rawStatus.includes('RAGU') || rawStatus.includes('MISLEADING') || rawStatus.includes('SEBAGIAN') || rawStatus.includes('CAMPURAN')) {
+        } else if (rawStatus.includes('FAKTA') || rawStatus.includes('BENAR') || rawStatus.includes('VALID') || rawStatus.includes('TRUE')) {
+          verdict = 'FAKTA';
+        } else if (rawStatus.includes('RAGU') || rawStatus.includes('MISLEADING') || rawStatus.includes('SEBAGIAN') || rawStatus.includes('CAMPURAN') || rawStatus.includes('TIDAK RELEVAN')) {
           verdict = 'RAGU-RAGU';
         }
 
@@ -349,7 +351,7 @@ export default function VerifyScreen() {
         
         // Fallback to offline logic if n8n is inactive or error
         const query = claimQuery.toLowerCase();
-        let verdict: 'VALID' | 'HOAKS' | 'RAGU-RAGU' = 'VALID';
+        let verdict: 'FAKTA' | 'HOAKS' | 'RAGU-RAGU' = 'FAKTA';
         let title = selectedImageUri ? `Analisis Gambar Lokal: ${selectedImageName}` : ('Hasil Analisis Lokal: ' + claimQuery);
         let confidence = '88%';
         let color = '#15803d'; // Green

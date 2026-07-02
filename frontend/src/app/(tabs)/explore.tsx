@@ -278,9 +278,9 @@ export default function ExploreScreen() {
     }
   };
 
-  const handleStartAnalysis = (sampleType: 'hoax_photo' | 'valid_photo' | 'custom_photo', customUri?: string, customName?: string) => {
+  const handleStartAnalysis = (sampleType: 'custom_photo', customUri?: string, customName?: string) => {
     setSelectedSample(sampleType);
-    if (sampleType === 'custom_photo' && customUri) {
+    if (customUri) {
       setCustomImageUri(customUri);
     }
     setIsScanning(true);
@@ -311,14 +311,14 @@ export default function ExploreScreen() {
         formData.append('query', 'TruthLens Sandbox Forensic Check');
         formData.append('claim', 'TruthLens Sandbox Forensic Check');
 
-        let response = await fetch('https://checkhoaks.app.n8n.cloud/webhook/fact-check', {
+        let response = await fetch('https://checkhoaks.app.n8n.cloud/webhook/truth-lens', {
           method: 'POST',
           body: formData,
         });
 
         if (!response.ok) {
           console.warn(`[Veritas] Production Webhook returned status ${response.status}. Trying Test Webhook...`);
-          response = await fetch('https://checkhoaks.app.n8n.cloud/webhook-test/fact-check', {
+          response = await fetch('https://checkhoaks.app.n8n.cloud/webhook-test/truth-lens', {
             method: 'POST',
             body: formData,
           });
@@ -330,25 +330,32 @@ export default function ExploreScreen() {
           
           if (item) {
             const factCheck = item.factCheck;
-            const rawStatus = (factCheck?.status || item.verdict || item.status || 'VALID').toUpperCase();
-            
             let verdict: 'AMAN' | 'MENCURIGAKAN' | 'TIDAK_KONSISTEN' = 'AMAN';
             let authenticityScore = 90;
-            
-            const rawScore = factCheck?.confidenceScore ?? item.confidence;
-            const confidenceVal = rawScore != null
-              ? (typeof rawScore === 'number' && rawScore <= 1 ? Math.round(rawScore * 100) : Number(rawScore))
-              : 85;
 
-            if (rawStatus.includes('HOAX') || rawStatus.includes('PALSU') || rawStatus.includes('SALAH') || rawStatus.includes('FALSE')) {
-              verdict = 'TIDAK_KONSISTEN';
-              authenticityScore = Math.max(10, 100 - confidenceVal);
-            } else if (rawStatus.includes('RAGU') || rawStatus.includes('MISLEADING') || rawStatus.includes('SEBAGIAN') || rawStatus.includes('CAMPURAN')) {
-              verdict = 'MENCURIGAKAN';
-              authenticityScore = Math.max(30, Math.min(65, 100 - confidenceVal));
+            if (item.verdict === 'TIDAK_KONSISTEN' || item.verdict === 'MENCURIGAKAN' || item.verdict === 'AMAN') {
+              verdict = item.verdict;
+              authenticityScore = item.score ?? 90;
+            } else if (item.status === 'TIDAK_KONSISTEN' || item.status === 'MENCURIGAKAN' || item.status === 'AMAN') {
+              verdict = item.status;
+              authenticityScore = item.score ?? 90;
             } else {
-              verdict = 'AMAN';
-              authenticityScore = Math.min(98, confidenceVal);
+              const rawStatus = (factCheck?.status || item.verdict || item.status || 'VALID').toUpperCase();
+              const rawScore = factCheck?.confidenceScore ?? item.confidence;
+              const confidenceVal = rawScore != null
+                ? (typeof rawScore === 'number' && rawScore <= 1 ? Math.round(rawScore * 100) : Number(rawScore))
+                : 85;
+
+              if (rawStatus.includes('HOAX') || rawStatus.includes('PALSU') || rawStatus.includes('SALAH') || rawStatus.includes('FALSE')) {
+                verdict = 'TIDAK_KONSISTEN';
+                authenticityScore = Math.max(10, 100 - confidenceVal);
+              } else if (rawStatus.includes('RAGU') || rawStatus.includes('MISLEADING') || rawStatus.includes('SEBAGIAN') || rawStatus.includes('CAMPURAN')) {
+                verdict = 'MENCURIGAKAN';
+                authenticityScore = Math.max(30, Math.min(65, 100 - confidenceVal));
+              } else {
+                verdict = 'AMAN';
+                authenticityScore = Math.min(98, confidenceVal);
+              }
             }
 
             const reasoning = Array.isArray(factCheck?.reasoning) && factCheck.reasoning.length > 0
@@ -360,18 +367,21 @@ export default function ExploreScreen() {
               : [];
 
             // Generate realistic detail fields for TruthLens based on verdict
-            let exifText = 'Metadata file EXIF lengkap (Ditemukan model kamera, waktu pengambilan, & kompresi standar). Tidak terindikasi rekayasa metadata janggal.';
-            let elaText = 'Hasil uji kompresi ELA menunjukkan sebaran ketebalan piksel noise seragam di seluruh area foto. Tidak terdeteksi penempelan objek baru.';
-            let aiText = 'Probabilitas buatan generator AI (Gen-AI Probability): 9%. Menandakan foto ini diambil menggunakan kamera fisik riil.';
+            let exifText = item.metadata || 'Metadata file EXIF lengkap (Ditemukan model kamera, waktu pengambilan, & kompresi standar). Tidak terindikasi rekayasa metadata janggal.';
+            let elaText = item.elaAnalysis || 'Hasil uji kompresi ELA menunjukkan sebaran ketebalan piksel noise seragam di seluruh area foto. Tidak terdeteksi penempelan objek baru.';
+            let aiText = item.aiDetection || 'Probabilitas buatan generator AI (Gen-AI Probability): 9%. Menandakan foto ini diambil menggunakan kamera fisik riil.';
             
-            if (verdict === 'TIDAK_KONSISTEN') {
-              exifText = 'Terdeteksi anomali pada metadata berkas. Tanggal modifikasi berkas tidak cocok dengan tanggal pembuatan gambar asli.';
-              elaText = `Terdeteksi ketidakcocokan pola kompresi piksel tinggi (${confidenceVal}%) pada beberapa area spesifik gambar, mengindikasikan adanya manipulasi lokal/photoshop.`;
-              aiText = 'Probabilitas gambar buatan AI generator rendah. Gambar merupakan foto riil yang dimanipulasi secara digital.';
-            } else if (verdict === 'MENCURIGAKAN') {
-              exifText = 'Metadata EXIF sebagian telah dihapus atau hilang (kemungkinan diunduh dari platform chat). Rekayasa metadata tidak dapat diuji secara penuh.';
-              elaText = 'Terdapat sedikit noise kompresi tidak seragam di dekat tepi teks, menunjukkan adanya kemungkinan pengeditan ringan.';
-              aiText = `Probabilitas buatan generator AI (Deepfake / Gen-AI): ${confidenceVal}%. Terdapat kecurigaan pola sintetis pada struktur pixel.`;
+            if (!item.metadata && !item.elaAnalysis && !item.aiDetection) {
+              const confidenceVal = factCheck?.confidenceScore ?? item.confidence ?? 85;
+              if (verdict === 'TIDAK_KONSISTEN') {
+                exifText = 'Terdeteksi anomali pada metadata berkas. Tanggal modifikasi berkas tidak cocok dengan tanggal pembuatan gambar asli.';
+                elaText = `Terdeteksi ketidakcocokan pola kompresi piksel tinggi (${confidenceVal}%) pada beberapa area spesifik gambar, mengindikasikan adanya manipulasi lokal/photoshop.`;
+                aiText = 'Probabilitas gambar buatan AI generator rendah. Gambar merupakan foto riil yang dimanipulasi secara digital.';
+              } else if (verdict === 'MENCURIGAKAN') {
+                exifText = 'Metadata EXIF sebagian telah dihapus atau hilang (kemungkinan diunduh dari platform chat). Rekayasa metadata tidak dapat diuji secara penuh.';
+                elaText = 'Terdapat sedikit noise kompresi tidak seragam di dekat tepi teks, menunjukkan adanya kemungkinan pengeditan ringan.';
+                aiText = `Probabilitas buatan generator AI (Deepfake / Gen-AI): ${confidenceVal}%. Terdapat kecurigaan pola sintetis pada struktur pixel.`;
+              }
             }
 
             webhookReport = {
@@ -382,9 +392,9 @@ export default function ExploreScreen() {
               metadata: exifText,
               elaAnalysis: elaText,
               aiDetection: aiText,
-              reverseIndex: sources.length > 0 
+              reverseIndex: item.reverseIndex || (sources.length > 0 
                 ? `Terindeks di beberapa sumber cek fakta publik: ${sources.join(', ')}`
-                : (reasoning.length > 150 ? reasoning.slice(0, 150) + '...' : reasoning)
+                : (reasoning.length > 150 ? reasoning.slice(0, 150) + '...' : reasoning))
             };
             console.log('[Veritas] TruthLens mapped from fact-check webhook successfully!');
           }
@@ -434,34 +444,7 @@ export default function ExploreScreen() {
               }
             };
 
-            if (sampleType === 'custom_photo') {
-              checkCompletion();
-            } else {
-              setIsScanning(false);
-              if (sampleType === 'hoax_photo') {
-                setForensicReport({
-                  score: 18,
-                  status: 'TIDAK_KONSISTEN',
-                  imageTitle: 'Klaim Foto Penemuan Bansos di Gudang Rahasia',
-                  imageUri: 'https://lh3.googleusercontent.com/aida-public/AB6AXu-dlVGnxrozhnU8cTIEBPtR8y5K2Gy-pdjfhw20rT8smLOwil1G0YYlIQgBYWsyegBQ1F_Vb0kO-8A6pezxUE2Fp3hgDGKIqC682OYukZaT3793KN5XR24U2aNPJV2aWyoGnsPk57wS5nmA2KpvO3MUWGb517MjNY_AB-QnP3bOG6KxN3DjfAJ0l8Uin-abyg_OBz6aqutq9S1rIQhdWyow5m0xv7N23Y7LtcJmYBL3qyVC8HAOz6rLj27S2WdGgqjBgk-CMgYNvs',
-                  metadata: 'Tanggal asli file EXIF dibuat adalah 12 April 2020. Ini membantah klaim postingan media sosial yang menyatakan foto diambil hari ini pada peristiwa banjir Juni 2026.',
-                  elaAnalysis: 'Terdeteksi inkonsistensi pola kompresi piksel tinggi (94%) pada area spanduk teks. Teks pada spanduk terbukti ditempel secara digital menggunakan aplikasi edit foto.',
-                  aiDetection: 'Tidak terdeteksi pola generator AI (Gen-AI probability 4%). Foto asli, namun dimanipulasi secara manual.',
-                  reverseIndex: 'Gambar terindeks pertama kali di forum Reddit pada April 2020 terkait peristiwa pembagian logistik di negara tetangga.'
-                });
-              } else {
-                setForensicReport({
-                  score: 96,
-                  status: 'AMAN',
-                  imageTitle: 'Tangkapan Layar Pengumuman Resmi Bank Indonesia',
-                  imageUri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBh0TmFuXhASC7VJ17P4dRWNan__CSGUtwFIzz6yxWlr-7GXFC_5a_bGzzVhp039hG6h-IcLVDEPh9w2-S_0-dOzhMHl3dNZTfOdohtVixOPz_8IMwu2Io8yPZDK5NItkiDBt1moqLT9nw5LsXujFhF_CQqmzWSJ8mxfUucZqFwWR82wXFtxvXoE9e5qcet9H_XCFOgvKvCvQfV-jEKaGDNtvaqU3nZt37H-odUDBFhgHRmfQrS1THx02t40wb40plE5ujXH5qK_FU',
-                  metadata: 'Metadata file EXIF konsisten. Koordinat GPS dan tanggal pembuatan file (Juni 2026) sejalan dengan pengumuman rilis.',
-                  elaAnalysis: 'Hasil uji kompresi ELA menunjukkan distribusi noise piksel yang seragam di seluruh area gambar. Tidak ada tanda-tanda manipulasi kolase teks.',
-                  aiDetection: 'Probabilitas gambar buatan AI: 0%. Struktur pixel sesuai dengan tangkapan layar sistem operasi seluler asli.',
-                  reverseIndex: 'Gambar terindeks pertama kali di situs web resmi Bank Indonesia (bi.go.id) pada hari ini.'
-                });
-              }
-            }
+            checkCompletion();
           }, 800);
         }, 850);
       }, 850);
@@ -674,49 +657,15 @@ export default function ExploreScreen() {
                       style={({ pressed }) => [
                         styles.sampleCard,
                         pressed && styles.btnPressed,
-                        { borderColor: '#00ca92', borderStyle: 'dashed', borderWidth: 2, backgroundColor: theme.background === '#ffffff' ? '#fcfaff' : '#1a171c' }
+                        { borderColor: '#00ca92', borderStyle: 'dashed', borderWidth: 2, backgroundColor: theme.background === '#ffffff' ? '#fcfaff' : '#1a171c', width: '100%' }
                       ]}
                     >
-                      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', minHeight: 120 }}>
-                        <Ionicons name="cloud-upload" size={32} color="#00ca92" style={{ marginBottom: 8 }} />
-                        <Text style={[styles.sampleCardText, { color: '#00ca92', textAlign: 'center', fontWeight: '800' }]}>Unggah Foto Anda</Text>
-                        <Text style={{ fontSize: 9, color: theme.textSecondary, textAlign: 'center', marginTop: 4 }}>Pilih dari Galeri</Text>
-                      </View>
-                    </Pressable>
-
-                    <Pressable
-                      onPress={() => handleStartAnalysis('hoax_photo')}
-                      style={({ pressed }) => [
-                        styles.sampleCard,
-                        pressed && styles.btnPressed,
-                        { borderColor: theme.backgroundElement, backgroundColor: theme.background === '#ffffff' ? '#ffffff' : '#1e1e21' }
-                      ]}
-                    >
-                      <Image
-                        style={styles.sampleThumbnail}
-                        source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXu-dlVGnxrozhnU8cTIEBPtR8y5K2Gy-pdjfhw20rT8smLOwil1G0YYlIQgBYWsyegBQ1F_Vb0kO-8A6pezxUE2Fp3hgDGKIqC682OYukZaT3793KN5XR24U2aNPJV2aWyoGnsPk57wS5nmA2KpvO3MUWGb517MjNY_AB-QnP3bOG6KxN3DjfAJ0l8Uin-abyg_OBz6aqutq9S1rIQhdWyow5m0xv7N23Y7LtcJmYBL3qyVC8HAOz6rLj27S2WdGgqjBgk-CMgYNvs' }}
-                      />
-                      <Text style={[styles.sampleCardText, { color: theme.text }]}>Analisis Foto Bansos Rahasia</Text>
-                      <View style={styles.sampleBadge}>
-                        <Text style={styles.sampleBadgeText}>Klaim Foto Viral</Text>
-                      </View>
-                    </Pressable>
-
-                    <Pressable
-                      onPress={() => handleStartAnalysis('valid_photo')}
-                      style={({ pressed }) => [
-                        styles.sampleCard,
-                        pressed && styles.btnPressed,
-                        { borderColor: theme.backgroundElement, backgroundColor: theme.background === '#ffffff' ? '#ffffff' : '#1e1e21' }
-                      ]}
-                    >
-                      <Image
-                        style={styles.sampleThumbnail}
-                        source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBh0TmFuXhASC7VJ17P4dRWNan__CSGUtwFIzz6yxWlr-7GXFC_5a_bGzzVhp039hG6h-IcLVDEPh9w2-S_0-dOzhMHl3dNZTfOdohtVixOPz_8IMwu2Io8yPZDK5NItkiDBt1moqLT9nw5LsXujFhF_CQqmzWSJ8mxfUucZqFwWR82wXFtxvXoE9e5qcet9H_XCFOgvKvCvQfV-jEKaGDNtvaqU3nZt37H-odUDBFhgHRmfQrS1THx02t40wb40plE5ujXH5qK_FU' }}
-                      />
-                      <Text style={[styles.sampleCardText, { color: theme.text }]}>Analisis Screenshot Pengumuman BI</Text>
-                      <View style={styles.sampleBadge}>
-                        <Text style={styles.sampleBadgeText}>Klaim Edaran PDF</Text>
+                      <View style={{ justifyContent: 'center', alignItems: 'center', paddingVertical: 36, width: '100%' }}>
+                        <Ionicons name="cloud-upload-outline" size={44} color="#00ca92" style={{ marginBottom: 12 }} />
+                        <Text style={[styles.sampleCardText, { color: '#00ca92', textAlign: 'center', fontWeight: '800', fontSize: 14 }]}>Pilih & Unggah Foto</Text>
+                        <Text style={{ fontSize: 11, color: theme.textSecondary, textAlign: 'center', marginTop: 6 }}>
+                          Format gambar JPEG/PNG akan dianalisis secara forensik
+                        </Text>
                       </View>
                     </Pressable>
                   </View>
@@ -728,7 +677,7 @@ export default function ExploreScreen() {
                   <View style={[styles.imagePreviewWrapper, { borderColor: theme.backgroundElement }]}>
                     <Image
                       style={styles.previewImage}
-                      source={{ uri: selectedSample === 'hoax_photo' ? 'https://lh3.googleusercontent.com/aida-public/AB6AXu-dlVGnxrozhnU8cTIEBPtR8y5K2Gy-pdjfhw20rT8smLOwil1G0YYlIQgBYWsyegBQ1F_Vb0kO-8A6pezxUE2Fp3hgDGKIqC682OYukZaT3793KN5XR24U2aNPJV2aWyoGnsPk57wS5nmA2KpvO3MUWGb517MjNY_AB-QnP3bOG6KxN3DjfAJ0l8Uin-abyg_OBz6aqutq9S1rIQhdWyow5m0xv7N23Y7LtcJmYBL3qyVC8HAOz6rLj27S2WdGgqjBgk-CMgYNvs' : (selectedSample === 'valid_photo' ? 'https://lh3.googleusercontent.com/aida-public/AB6AXuBh0TmFuXhASC7VJ17P4dRWNan__CSGUtwFIzz6yxWlr-7GXFC_5a_bGzzVhp039hG6h-IcLVDEPh9w2-S_0-dOzhMHl3dNZTfOdohtVixOPz_8IMwu2Io8yPZDK5NItkiDBt1moqLT9nw5LsXujFhF_CQqmzWSJ8mxfUucZqFwWR82wXFtxvXoE9e5qcet9H_XCFOgvKvCvQfV-jEKaGDNtvaqU3nZt37H-odUDBFhgHRmfQrS1THx02t40wb40plE5ujXH5qK_FU' : customImageUri || '') }}
+                      source={{ uri: customImageUri || '' }}
                       contentFit="cover"
                     />
                     {isScanning && (
@@ -1142,41 +1091,23 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.four,
   },
   sampleGrid: {
-    flexDirection: 'row',
-    gap: Spacing.three,
+    flexDirection: 'column',
     width: '100%',
     marginTop: Spacing.two,
   },
   sampleCard: {
-    flex: 1,
+    width: '100%',
     borderWidth: 1,
-    borderRadius: 16,
-    padding: 10,
+    borderRadius: 12,
+    padding: 16,
     alignItems: 'center',
     gap: 8,
-  },
-  sampleThumbnail: {
-    width: '100%',
-    aspectRatio: 1.3,
-    borderRadius: 10,
   },
   sampleCardText: {
     fontSize: 11,
     fontWeight: '700',
     fontFamily: 'Be Vietnam Pro',
     textAlign: 'center',
-  },
-  sampleBadge: {
-    backgroundColor: '#f2ecf4',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-  },
-  sampleBadgeText: {
-    fontSize: 9,
-    fontFamily: 'Be Vietnam Pro',
-    fontWeight: '700',
-    color: '#00ca92',
   },
   analyzerContainer: {
     width: '100%',
@@ -1186,7 +1117,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 320,
     height: 160,
-    borderRadius: 16,
+    borderRadius: 12,
     overflow: 'hidden',
     borderWidth: 1,
     position: 'relative',
@@ -1225,7 +1156,7 @@ const styles = StyleSheet.create({
   },
   reportCard: {
     borderWidth: 1,
-    borderRadius: 20,
+    borderRadius: 12,
     padding: Spacing.four,
     width: '100%',
     shadowColor: '#1a365d',
